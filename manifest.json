@@ -1,0 +1,22 @@
+{
+  "name": "HOT Token Sale Launchpad",
+  "short_name": "Token Sale Platform",
+  "description": "A mainnet-ready presale launchpad for the HOT token, featuring real-time price feeds, user balance tracking, and a dynamic token sale interface.",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#D0BFB4",
+  "background_color": "#000000"
+}

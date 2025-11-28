@@ -1,0 +1,93 @@
+
+openapi: 3.0.0
+info:
+  title: HOT Network API
+  description: API for the HOT Token Sale Launchpad, handling affiliate rewards and other backend services.
+  version: 1.0.0
+servers:
+  - url: https://api.hotnetwork.fun
+    description: Production Server
+
+paths:
+  /api/affiliate/claim-retweet:
+    post:
+      summary: Claim the one-time retweet bonus
+      description: Allows an authenticated user to claim their 1000 HOT bonus for social sharing. The server verifies the user's X (Twitter) account for authenticity (e.g., follower count, age, activity) and ensures the bonus has not already been claimed.
+      tags:
+        - Affiliate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - walletAddress
+                - twitterHandle
+              properties:
+                walletAddress:
+                  type: string
+                  description: The user's Solana wallet address.
+                  example: 'user1234...abcd'
+                twitterHandle:
+                  type: string
+                  description: The user's X (Twitter) handle for validation.
+                  example: '@HotNetworkUser'
+      responses:
+        '200':
+          description: Bonus successfully claimed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: '1000 HOT tokens have been credited to your account.'
+                  newBalance:
+                    type: number
+                    example: 11000
+        '400':
+          description: Bad Request, such as an invalid X handle, an account that doesn't meet requirements, or a bonus that has already been claimed.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Error'
+                  - example: 
+                      error: "X account does not meet activity requirements."
+                  - example:
+                      error: "Invalid X handle provided."
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: A message describing the error.
+          example: 'Bonus has already been claimed for this account.'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Authentication token for verifying user identity.
