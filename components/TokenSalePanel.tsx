@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, lazy } from 'react';
 import Button from './Button';
 import CountdownDisplay from './CountdownDisplay';
@@ -17,7 +16,7 @@ const SOL_TRANSACTION_FEE = 0.00001; // A small fee for SOL transactions
 
 const TransactionHistory: React.FC<{ transactions: Transaction[] }> = ({ transactions }) => {
     const { networkConfig } = useTokenSalesContext();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(transactions.length > 0);
 
     const getExplorerUrl = (txId: string) => {
         if (txId.startsWith('sim_') || txId.startsWith('card_') || txId.startsWith('solpay_')) return '#';
@@ -44,7 +43,7 @@ const TransactionHistory: React.FC<{ transactions: Transaction[] }> = ({ transac
     return (
         <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-3">
             <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
-                <span>Recent Activity</span>
+                <span>Recent Activity {transactions.length > 0 && `(${transactions.length})`}</span>
                 <i className={`fas fa-chevron-down transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}></i>
             </button>
             <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? 'max-h-60 mt-2' : 'max-h-0'}`}>
@@ -111,6 +110,7 @@ const EndedSalePanel: React.FC = () => {
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
     const [claimStep, setClaimStep] = useState<'confirm' | 'processing' | 'success' | 'error'>('confirm');
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const [claimedAmount, setClaimedAmount] = useState<number>(0);
     
     const isOverallProcessing = transactions.status === 'processing';
 
@@ -126,13 +126,12 @@ const EndedSalePanel: React.FC = () => {
     };
 
     const handleConfirmClaim = async () => {
+        const amountToClaim = user.hotBalance;
+        setClaimedAmount(amountToClaim);
         setClaimStep('processing');
         const result = await transactions.claimTokens();
         if (result) {
             setClaimStep('success');
-            setTimeout(() => {
-                setIsClaimModalOpen(false);
-            }, 2500);
         } else {
             setErrorMessage(transactions.error || 'An unknown error occurred during the claim.');
             setClaimStep('error');
@@ -185,7 +184,10 @@ const EndedSalePanel: React.FC = () => {
                             <i className="fa-solid fa-check"></i>
                         </div>
                         <h3 className="text-2xl font-bold">Success!</h3>
-                        <p className="text-gray-500 mt-2">Your {user.hotBalance.toLocaleString()} HOT tokens have been claimed.</p>
+                        <p className="text-gray-500 mt-2">Your {claimedAmount.toLocaleString()} HOT tokens have been claimed.</p>
+                        <Button onClick={handleCloseModal} className="w-full mt-6 bg-brand-accent text-brand-dark">
+                            Done
+                        </Button>
                     </div>
                 );
             case 'error':
@@ -401,6 +403,11 @@ const ActiveSalePanel: React.FC<ActiveSalePanelProps> = ({ stage, countdown, tot
                                 <span className="font-bold text-gray-500 dark:text-gray-400">{paymentCurrency}</span>
                             </div>
                         </div>
+                         {paymentCurrency === 'SOL' && prices.solPrice > 0 && (
+                            <p className="text-right text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                                1 SOL ≈ ${prices.solPrice.toFixed(2)}
+                            </p>
+                        )}
                     </div>
                     <div className="flex justify-center items-center my-1"><i className="fa-solid fa-arrow-down-long text-gray-400 dark:text-gray-500 text-lg"></i></div>
                     <div>
