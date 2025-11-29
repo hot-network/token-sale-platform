@@ -1,3 +1,4 @@
+
 import { logger } from '../../services/logger';
 import { createConfirmationEmailHtml } from './newsletter-template';
 

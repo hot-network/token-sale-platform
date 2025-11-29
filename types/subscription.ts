@@ -1,3 +1,4 @@
+
 export interface NewsletterSubscriptionPayload {
   email: string;
 }

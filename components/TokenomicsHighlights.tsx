@@ -5,9 +5,9 @@ const DistributionDonutChart = lazy(() => import('./charts/DistributionDonutChar
 const VestingScheduleChart = lazy(() => import('./charts/VestingScheduleChart'));
 
 const MetricCard: React.FC<{ title: string; value: string; description: string; icon: string }> = ({ title, value, description, icon }) => (
-    <div className="bg-white dark:bg-brand-dark p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
+    <div className="bg-brand-light dark:bg-brand-dark p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
         <div className="flex items-center gap-4 mb-3">
-            <div className="w-10 h-10 flex items-center justify-center text-brand-accent bg-brand-accent/10 rounded-lg">
+            <div className="w-10 h-10 flex items-center justify-center text-brand-accent-dark bg-brand-accent/10 rounded-lg">
                 <i className={`fa-solid ${icon} text-xl`}></i>
             </div>
             <div>
@@ -20,7 +20,7 @@ const MetricCard: React.FC<{ title: string; value: string; description: string; 
 );
 
 const ChartCard: React.FC<{ title: string; children: React.ReactNode; footer: React.ReactNode }> = ({ title, children, footer }) => (
-    <div className="bg-white dark:bg-brand-dark p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg flex flex-col">
+    <div className="bg-brand-light dark:bg-brand-dark p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg flex flex-col">
         <h3 className="text-lg font-bold mb-4">{title}</h3>
         <div className="flex-grow h-48 sm:h-56">
              <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><i className="fas fa-spinner fa-spin text-2xl text-brand-accent"></i></div>}>
@@ -73,8 +73,8 @@ const TokenomicsHighlights: React.FC = () => {
                         footer={
                              <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                                 <li><strong>40%</strong> Presale</li>
-                                <li><strong>25%</strong> Liquidity</li>
-                                <li><strong>30%</strong> Ecosystem & Team</li>
+                                <li><strong>20%</strong> Liquidity</li>
+                                <li><strong>35%</strong> Ecosystem & Team</li>
                                 <li><strong>5%</strong> Marketing</li>
                             </ul>
                         }

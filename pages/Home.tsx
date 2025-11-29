@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from 'react';
 
 const Header = lazy(() => import('../components/Header'));
@@ -24,8 +25,8 @@ const Home: React.FC<HomeProps> = ({ toggleTheme, currentTheme }) => {
                     <Features />
                     <TokenomicsHighlights />
                     <Faq />
-                    <Newsletter />
                     <Cta />
+                    <Newsletter />
                 </Suspense>
             </main>
             <Footer />

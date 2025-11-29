@@ -1,10 +1,11 @@
+
 import React, { lazy, Suspense } from 'react';
 
 const NewsletterForm = lazy(() => import('./NewsletterForm'));
 
 const Newsletter: React.FC = () => {
   return (
-    <section className="py-20 sm:py-24 bg-brand-light-dark dark:bg-brand-dark">
+    <section className="py-20 sm:py-24 bg-brand-light-dark dark:bg-brand-background-dark">
       <div className="container mx-auto px-4 text-center">
         <h2 className="text-3xl sm:text-4xl font-semibold font-serif text-gray-900 dark:text-white mb-4">
           Stay Ahead of the Curve

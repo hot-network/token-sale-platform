@@ -1,22 +1,11 @@
-
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Transaction, TransactionStatus } from '../types/transactions';
-import { claimHotTokens, purchaseHotTokens } from '../lib/solana/anchor';
+import { claimHotTokens, purchaseHotTokens } from '../lib/solana/presale';
 import { executeJupiterSwap } from '../lib/solana/jupiter';
-import { UserHookReturn } from '../types/users';
+import { User } from '../types/users';
 import { logger } from '../services/logger';
-import { GoogleGenAI } from '@google/genai';
-
-const getApiKey = () => {
-    try {
-        if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-            return process.env.API_KEY;
-        }
-    } catch (e) {
-        console.warn("Could not access process.env.API_KEY. AI features may be disabled.");
-    }
-    return '';
-};
+import { SolanaNetwork } from '../types';
+import { localCacheGet, localCacheSet } from '../utils/cache';
 
 interface UseTransactionsProps {
     saleState: 'UPCOMING' | 'ACTIVE' | 'ENDED';
@@ -25,32 +14,71 @@ interface UseTransactionsProps {
         marketHotPrice: number;
         solPrice: number;
     };
-    user: UserHookReturn;
+    user: User;
     wallets: {
         isConnected: boolean;
         adapter: any;
     };
-    onTransactionSuccess: (usdValue: number) => void;
+    network: SolanaNetwork;
+    onTransactionSuccess: (usdValue: number, isClaim?: boolean) => void;
     onTransactionError: (error: string) => void;
+    refetchBalances: () => void;
 }
 
+const recordTransactionOnServer = async (txData: {
+    signature: string;
+    walletAddress: string;
+    hotAmount: number;
+    paidAmount: number;
+    currency: 'SOL' | 'USDC';
+    usdValue: number;
+}) => {
+    try {
+        const response = await fetch('/api/transactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                signature: txData.signature,
+                walletAddress: txData.walletAddress,
+                hotAmount: txData.hotAmount,
+                paidAmount: txData.paidAmount,
+                paidCurrency: txData.currency,
+                usdValue: txData.usdValue,
+            })
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Server failed to record transaction with status ${response.status}`);
+        }
+        logger.info('[useTransactions]', 'Successfully recorded transaction on server.');
+    } catch (error) {
+        logger.error('[useTransactions]', 'Failed to record transaction on server.', error);
+    }
+};
+
+const TRANSACTION_HISTORY_CACHE_KEY = 'transaction_history';
+
 export default function useTransactions(props: UseTransactionsProps) {
-    const { saleState, prices, user, wallets, onTransactionSuccess, onTransactionError } = props;
+    const { saleState, prices, user, wallets, network, onTransactionSuccess, onTransactionError, refetchBalances } = props;
     
     const [status, setStatus] = useState<TransactionStatus>('idle');
     const [error, setError] = useState<string | null>(null);
-    const [history, setHistory] = useState<Transaction[]>([]);
+    const [history, setHistory] = useState<Transaction[]>(() => localCacheGet(TRANSACTION_HISTORY_CACHE_KEY) || []);
 
     const [isAuditing, setIsAuditing] = useState(false);
     const [aiAuditResult, setAiAuditResult] = useState<string | null>(null);
     const [auditError, setAuditError] = useState<string | null>(null);
+
+    useEffect(() => {
+        localCacheSet(TRANSACTION_HISTORY_CACHE_KEY, history);
+    }, [history]);
 
     const clearError = useCallback(() => setError(null), []);
     const addTransactionToHistory = useCallback((transaction: Transaction) => setHistory(prev => [transaction, ...prev]), []);
 
     const executeGenericTransaction = useCallback(async <T extends any[], R>(
         txFunction: (...args: T) => Promise<{ success: boolean; error?: string; [key: string]: any }>,
-        onSuccess: (result: any) => R,
+        onSuccess: (result: any) => Promise<R> | R,
         ...args: T
     ): Promise<R | null> => {
         if (!wallets.isConnected) {
@@ -64,15 +92,15 @@ export default function useTransactions(props: UseTransactionsProps) {
         try {
             const result = await txFunction(...args);
             if (result.success) {
-                const successData = onSuccess(result);
+                const successData = await onSuccess(result);
                 setStatus('success');
+                refetchBalances();
                 return successData;
             } else {
                 throw new Error(result.error || "Transaction failed in contract.");
             }
         } catch (err: any) {
             const errMsg = err.message || 'An unknown error occurred.';
-            // User rejection is a common case, handle it gracefully
             if (errMsg.includes('User rejected the request')) {
                 onTransactionError('Transaction was rejected.');
             } else {
@@ -82,25 +110,54 @@ export default function useTransactions(props: UseTransactionsProps) {
             setStatus('error');
             return null;
         }
-    }, [wallets.isConnected, onTransactionError]);
+    }, [wallets.isConnected, onTransactionError, refetchBalances]);
 
     const buyPresaleTokens = useCallback(async (hotAmount: number, currency: 'SOL' | 'USDC'): Promise<Transaction | null> => {
         const usdValue = hotAmount * prices.presaleHotPrice;
-        const result = await executeGenericTransaction(
+        const cost = currency === 'SOL' ? (prices.solPrice > 0 ? usdValue / prices.solPrice : 0) : usdValue;
+        
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            onTransactionError("You are offline. Transaction has been queued.");
+            const newTx: Transaction = {
+                id: `pending_${Date.now()}`,
+                timestamp: Date.now(),
+                hotAmount,
+                currency,
+                paidAmount: cost,
+                usdValue,
+                type: 'presale_buy',
+                status: 'pending',
+            };
+            addTransactionToHistory(newTx);
+            return newTx;
+        }
+        
+        return await executeGenericTransaction(
             purchaseHotTokens,
-            (res: { signature: string, paidAmount: number }): Transaction => {
+            async (res: { signature: string; paidAmount: number }): Promise<Transaction> => {
                 const newTx: Transaction = {
                     id: res.signature,
                     timestamp: Date.now(),
                     hotAmount,
                     currency,
+                    paidAmount: res.paidAmount,
                     usdValue,
                     type: 'presale_buy',
+                    status: 'confirmed',
                 };
                 addTransactionToHistory(newTx);
-                user.deductFunds(res.paidAmount, currency);
-                user.updateUserBalance(user.hotBalance + hotAmount);
                 onTransactionSuccess(usdValue);
+
+                if (network === 'mainnet') {
+                    await recordTransactionOnServer({
+                        signature: res.signature,
+                        walletAddress: user.address!,
+                        hotAmount,
+                        paidAmount: res.paidAmount,
+                        currency,
+                        usdValue
+                    });
+                }
                 return newTx;
             },
             wallets.adapter,
@@ -108,16 +165,33 @@ export default function useTransactions(props: UseTransactionsProps) {
             hotAmount,
             prices,
             user.solBalance,
-            user.usdcBalance
+            user.usdcBalance,
+            network
         );
-        return result;
-    }, [executeGenericTransaction, addTransactionToHistory, user, prices, wallets.adapter, onTransactionSuccess]);
+    }, [executeGenericTransaction, addTransactionToHistory, user.address, user.solBalance, user.usdcBalance, prices, wallets.adapter, onTransactionSuccess, network, onTransactionError]);
 
     const claimTokens = useCallback(async (): Promise<Transaction | null> => {
         if (saleState !== 'ENDED' || user.hotBalance <= 0) {
             onTransactionError(user.hotBalance <= 0 ? "You have no tokens to claim." : "Claiming is not available yet.");
             return null;
         }
+        
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            onTransactionError("You are offline. Claim has been queued.");
+            const newTx: Transaction = {
+                id: `pending_claim_${Date.now()}`,
+                timestamp: Date.now(),
+                hotAmount: user.hotBalance,
+                currency: 'SOL',
+                paidAmount: 0,
+                usdValue: 0,
+                type: 'claim',
+                status: 'pending',
+            };
+            addTransactionToHistory(newTx);
+            return newTx;
+        }
+
         return await executeGenericTransaction(
             claimHotTokens,
             (res: { signature: string }): Transaction => {
@@ -125,68 +199,113 @@ export default function useTransactions(props: UseTransactionsProps) {
                     id: res.signature,
                     timestamp: Date.now(),
                     hotAmount: user.hotBalance,
-                    currency: 'SOL', // Claim doesn't involve payment currency
+                    currency: 'SOL',
+                    paidAmount: 0,
                     usdValue: 0,
                     type: 'claim',
+                    status: 'confirmed',
                 };
                 addTransactionToHistory(newTx);
-                user.updateUserBalance(0);
-                onTransactionSuccess(0);
+                onTransactionSuccess(user.hotBalance * prices.presaleHotPrice, true);
                 return newTx;
             },
-            wallets.adapter, user.hotBalance
+            wallets.adapter, user.hotBalance, network
         );
-    }, [saleState, user, executeGenericTransaction, addTransactionToHistory, wallets.adapter, onTransactionSuccess, onTransactionError]);
+    }, [saleState, user.hotBalance, prices.presaleHotPrice, executeGenericTransaction, addTransactionToHistory, wallets.adapter, onTransactionSuccess, onTransactionError, network]);
     
     const buyMarketTokens = useCallback(async (amount: number, currency: 'SOL' | 'USDC') => {
+        const usdValue = amount * prices.marketHotPrice;
+        const paidAmount = currency === 'SOL' ? (prices.solPrice > 0 ? usdValue / prices.solPrice : 0) : usdValue;
+
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            onTransactionError("You are offline. Market buy has been queued.");
+            addTransactionToHistory({
+                id: `pending_buy_${Date.now()}`,
+                timestamp: Date.now(),
+                hotAmount: amount,
+                currency,
+                paidAmount,
+                usdValue,
+                type: 'market_buy',
+                status: 'pending',
+            });
+            return;
+        }
+
         await executeGenericTransaction(
             executeJupiterSwap,
-            () => {
-                user.updateUserBalance(user.hotBalance + amount);
-                onTransactionSuccess(0); // Market trades don't count towards presale contribution
+            (res: { signature: string }): Transaction => {
+                const newTx: Transaction = {
+                    id: res.signature,
+                    timestamp: Date.now(),
+                    hotAmount: amount,
+                    currency,
+                    paidAmount,
+                    usdValue,
+                    type: 'market_buy',
+                    status: 'confirmed',
+                };
+                addTransactionToHistory(newTx);
+                return newTx;
             },
             amount, currency, 'buy'
         );
-    }, [executeGenericTransaction, user, onTransactionSuccess]);
+    }, [executeGenericTransaction, prices, addTransactionToHistory, onTransactionError]);
 
     const sellMarketTokens = useCallback(async (amount: number, currency: 'SOL' | 'USDC') => {
-        if (amount > user.hotBalance) {
+        if (amount > user.walletHotBalance) {
             const errorMessage = "Insufficient HOT balance to sell.";
             setError(errorMessage);
             onTransactionError(errorMessage);
             setStatus('error');
             return;
         }
+        const usdValue = amount * prices.marketHotPrice;
+        const paidAmount = currency === 'SOL' ? (prices.solPrice > 0 ? usdValue / prices.solPrice : 0) : usdValue;
+
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            onTransactionError("You are offline. Market sell has been queued.");
+            addTransactionToHistory({
+                id: `pending_sell_${Date.now()}`,
+                timestamp: Date.now(),
+                hotAmount: amount,
+                currency,
+                paidAmount,
+                usdValue,
+                type: 'market_sell',
+                status: 'pending',
+            });
+            return;
+        }
+
         await executeGenericTransaction(
             executeJupiterSwap,
-            () => {
-                user.updateUserBalance(user.hotBalance - amount);
-                onTransactionSuccess(0); // Market trades don't count towards presale contribution
+            (res: { signature: string }): Transaction => {
+                const newTx: Transaction = {
+                    id: res.signature,
+                    timestamp: Date.now(),
+                    hotAmount: amount,
+                    currency,
+                    paidAmount,
+                    usdValue,
+                    type: 'market_sell',
+                    status: 'confirmed',
+                };
+                addTransactionToHistory(newTx);
+                return newTx;
             },
             amount, currency, 'sell'
         );
-    }, [executeGenericTransaction, user, onTransactionError, onTransactionSuccess]);
+    }, [executeGenericTransaction, user.walletHotBalance, onTransactionError, prices, addTransactionToHistory]);
 
     const buyWithCard = useCallback(async (hotAmount: number): Promise<Transaction | null> => {
         const usdValue = hotAmount * prices.presaleHotPrice;
         setStatus('processing');
         setError(null);
-
-        // Simulate API call to a payment provider and waiting for webhook confirmation
         await new Promise(resolve => setTimeout(resolve, 3000));
-
-        // Simulate a successful transaction
         try {
-            const newTx: Transaction = {
-                id: `card_tx_${Date.now()}`,
-                timestamp: Date.now(),
-                hotAmount,
-                currency: 'USDC', // On-ramps typically deal with stablecoins
-                usdValue,
-                type: 'presale_buy',
-            };
+            const newTx: Transaction = { id: `card_tx_${Date.now()}`, timestamp: Date.now(), hotAmount, currency: 'USDC', paidAmount: usdValue, usdValue, type: 'presale_buy', status: 'confirmed' };
             addTransactionToHistory(newTx);
-            user.updateUserBalance(user.hotBalance + hotAmount);
             onTransactionSuccess(usdValue);
             setStatus('success');
             return newTx;
@@ -197,62 +316,44 @@ export default function useTransactions(props: UseTransactionsProps) {
             setStatus('error');
             return null;
         }
-    }, [addTransactionToHistory, user, prices.presaleHotPrice, onTransactionSuccess, onTransactionError]);
+    }, [addTransactionToHistory, prices.presaleHotPrice, onTransactionSuccess, onTransactionError]);
 
     const buyWithSolanaPay = useCallback(async (hotAmount: number, currency: 'SOL' | 'USDC'): Promise<Transaction | null> => {
         const usdValue = hotAmount * prices.presaleHotPrice;
+        const paidAmount = currency === 'SOL' ? (prices.solPrice > 0 ? usdValue / prices.solPrice : 0) : usdValue;
         setStatus('processing');
         setError(null);
-        
-        // In a real app, we'd make an API call to our backend to create a transaction request reference.
-        // The backend would then monitor the blockchain for the payment.
-        // Here, we'll just simulate a delay for the user "making" the payment.
-        
-        console.log("Waiting for Solana Pay transaction...");
         await new Promise(resolve => setTimeout(resolve, 4000));
-
-        // Simulate a successful transaction
         try {
             const signature = `solpay_sig_${Date.now()}`;
-            const newTx: Transaction = {
-                id: signature,
-                timestamp: Date.now(),
-                hotAmount,
-                currency,
-                usdValue,
-                type: 'presale_buy',
-            };
+            const newTx: Transaction = { id: signature, timestamp: Date.now(), hotAmount, currency, paidAmount, usdValue, type: 'presale_buy', status: 'confirmed' };
             addTransactionToHistory(newTx);
-            user.updateUserBalance(user.hotBalance + hotAmount);
             onTransactionSuccess(usdValue);
             setStatus('success');
             return newTx;
-        } catch (err: any)
-        {
+        } catch (err: any) {
             const errMsg = err.message || 'An unknown error occurred during Solana Pay processing.';
             setError(errMsg);
             onTransactionError(errMsg);
             setStatus('error');
             return null;
         }
-    }, [addTransactionToHistory, user, prices.presaleHotPrice, onTransactionSuccess, onTransactionError]);
-
+    }, [addTransactionToHistory, prices.presaleHotPrice, prices.solPrice, onTransactionSuccess, onTransactionError]);
 
     const runAiAudit = useCallback(async () => {
         setIsAuditing(true);
         setAiAuditResult(null);
         setAuditError(null);
         try {
-            const apiKey = getApiKey();
-            if (!apiKey) throw new Error("API Key not configured.");
-            const ai = new GoogleGenAI({ apiKey });
-            const prompt = `As a blockchain security analyst, provide a brief, high-level summary of a token presale with the following real-time metrics:\n- Current HOT/USD Price: $${prices.presaleHotPrice.toFixed(8)}\n\nYour summary should mention one key strength, one potential risk to monitor, and a concluding remark. Keep it concise and professional. Format the response using Markdown with bolding for titles.`;
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
-            if (response.text) {
-                setAiAuditResult(response.text);
-            } else {
-                throw new Error("Received an empty response from the AI.");
-            }
+            const response = await fetch('/api/audit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ presaleHotPrice: prices.presaleHotPrice }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "API request failed.");
+            if (data.text) setAiAuditResult(data.text);
+            else throw new Error("Received an empty response from the AI.");
         } catch (error: any) {
             logger.error('[AI Audit]', error.message, error);
             setAuditError(error.message || "Failed to generate AI audit.");

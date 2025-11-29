@@ -1,13 +1,15 @@
 
 import { useState, useCallback, useMemo } from 'react';
-import { UserHookReturn } from '../types/users';
-import useToast from './useToast';
-import { claimRetweetBonus as apiClaimRetweetBonus } from '../lib/hot-network/affiliate';
+import { UserProfileHookReturn } from '../types/users';
+import { ToastType } from '../types';
 import { RETWEET_BONUS_AMOUNT } from '../constants';
 
-export default function useAffiliate(user: UserHookReturn) {
+// The 'addToast' function is now passed as an argument to decouple this hook from useToast.
+export default function useAffiliate(
+    user: UserProfileHookReturn,
+    addToast: (message: string, type?: ToastType) => void
+) {
     const [status, setStatus] = useState<'idle' | 'processing'>('idle');
-    const { addToast } = useToast();
 
     const referralLink = useMemo(() => {
         if (!user.referralCode) return '';
@@ -26,10 +28,15 @@ export default function useAffiliate(user: UserHookReturn) {
         
         setStatus('processing');
         try {
-            // Simulate an API call to a backend to verify and claim the bonus.
-            const result = await apiClaimRetweetBonus(user.address!, twitterHandle);
+            const response = await fetch('/api/affiliate/claim-retweet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ walletAddress: user.address, twitterHandle }),
+            });
 
-            if (result.success) {
+            const result = await response.json();
+
+            if (response.ok) {
                 user.claimRetweetBonus(twitterHandle); // Update the local user state
                 addToast(`Successfully claimed ${RETWEET_BONUS_AMOUNT} HOT!`, 'success');
             } else {

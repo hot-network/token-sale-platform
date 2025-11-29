@@ -4,28 +4,24 @@ import Button from './Button';
 
 const Hero: React.FC = () => {
   return (
-    <div className="relative pt-32 pb-20 sm:pt-40 sm:pb-24 md:pt-48 md:pb-32 overflow-hidden bg-brand-dark">
-      <div 
-        className="absolute inset-0 z-0 opacity-30" 
-        style={{
-          backgroundImage: 'radial-gradient(circle at 15% 50%, #D0BFB4, transparent 40%), radial-gradient(circle at 85% 30%, #584F4C, transparent 40%)',
-          filter: 'blur(100px)'
-        }}
-      ></div>
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent to-brand-dark"></div>
+    <div className="relative bg-brand-dark text-white pt-48 pb-32 overflow-hidden">
+      {/* Background Image & Overlays */}
+      <div className="absolute inset-0 z-0 bg-hero-woman-bg bg-cover bg-center animate-kenBurns"></div>
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-brand-dark via-brand-dark/80 to-transparent"></div>
       
-      <div className="relative z-10 container mx-auto text-center px-4">
-        <p className="text-sm sm:text-base font-semibold tracking-widest uppercase text-gray-400 mb-2">The Future of Decentralized Content</p>
-        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white drop-shadow-lg">
-          Welcome to HOT Token Sale Platform
+      {/* Content */}
+      <div className="relative z-20 container mx-auto text-center px-4">
+        <p className="text-sm sm:text-base font-semibold tracking-widest uppercase text-brand-accent-dark dark:text-brand-accent mb-2 animate-fadeIn">A New Era for Creators</p>
+        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white animate-fadeIn" style={{ animationDelay: '100ms' }}>
+          Shape the Future of Decentralized Content
         </h1>
-        <p className="mt-6 max-w-lg md:max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-300 drop-shadow-md">
-         Discover the premier launchpad for the HOT token. Participate in token sales, track contributions, and explore a new era of creator economies.
+        <p className="mt-6 max-w-lg md:max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-300 drop-shadow-md animate-fadeIn" style={{ animationDelay: '200ms' }}>
+         Join the presale for HOT, the token powering a new generation of creator economies on Solana.
         </p>
         
-        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fadeIn" style={{ animationDelay: '300ms' }}>
             <a href="/launchpad">
-                 <Button variant="primary-light" className="text-lg px-8 py-4 w-full sm:w-auto">
+                 <Button variant="primary-light" className="text-lg px-8 py-4 w-full sm:w-auto shadow-2xl">
                     Launch App
                 </Button>
             </a>

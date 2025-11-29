@@ -1,3 +1,6 @@
+
+// This declaration informs TypeScript about the global `process` object provided by the execution environment.
+// It prevents the compiler from pulling in the entire `@types/node` library, which was causing type conflicts.
 declare var process: {
   env: {
     readonly API_KEY: string;
@@ -65,12 +68,14 @@ export interface Toast {
     type: ToastType;
 }
 
-export type SolanaNetwork = 'mainnet-beta' | 'devnet' | 'testnet';
+export type SolanaNetwork = 'mainnet' | 'devnet' | 'localnet';
 
 export interface NetworkConfig {
+    cluster: SolanaNetwork;
     label: string;
     rpcUrl: string;
     explorerUrl: string;
+    programId: string;
     hotTokenMint: string;
     usdcTokenMint: string;
     treasuryAddress: string;

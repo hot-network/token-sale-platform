@@ -44,7 +44,7 @@ const DocsLayout: React.FC<DocsLayoutProps> = ({
                         </div>
                     </aside>
                     <div className="lg:col-span-9">
-                        <div className="prose prose-lg dark:prose-invert max-w-none bg-white dark:bg-brand-dark-light p-6 sm:p-8 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div className="prose prose-lg dark:prose-invert max-w-none bg-white dark:bg-brand-dark p-6 sm:p-8 rounded-xl border border-gray-200 dark:border-gray-700">
                              {children}
                         </div>
                     </div>

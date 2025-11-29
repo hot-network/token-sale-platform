@@ -42,17 +42,16 @@ const Launchpad: React.FC<LaunchpadProps> = ({ toggleTheme, currentTheme }) => {
             <Header toggleTheme={toggleTheme} currentTheme={currentTheme} />
             <main>
                 <div className="relative pt-32 pb-20 sm:pt-40 sm:pb-24 md:pt-48 md:pb-32 overflow-hidden">
-                    <div className="absolute inset-0 z-0">
-                        <div className="absolute inset-0 bg-brand-background-light dark:bg-brand-dark"></div>
-                        <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/20 via-transparent to-brand-accent/5 dark:from-brand-accent/10 dark:via-transparent dark:to-brand-dark"></div>
-                        <div 
-                            className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-brand-accent/30 rounded-full filter blur-3xl opacity-20 animate-pulse"
-                            style={{ animationDuration: '8s' }}
-                        ></div>
-                        <div 
-                            className="absolute -bottom-1/4 -right-1/4 w-2/3 h-2/3 bg-brand-dark/20 dark:bg-brand-accent/10 rounded-full filter blur-3xl opacity-30 animate-pulse"
-                            style={{ animationDuration: '12s', animationDelay: '2s' }}
-                        ></div>
+                    <div className="absolute inset-0 bg-brand-background-light dark:bg-brand-background-dark z-0">
+                      <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-transparent dark:from-brand-dark dark:via-transparent to-transparent opacity-50"></div>
+                      <div 
+                        className="absolute top-0 left-0 w-1/3 h-1/3 bg-brand-accent/20 rounded-full filter blur-3xl opacity-30 animate-pulse"
+                        style={{ animationDuration: '10s' }}
+                      ></div>
+                      <div 
+                        className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-brand-accent/10 rounded-full filter blur-3xl opacity-20 animate-pulse"
+                        style={{ animationDuration: '15s', animationDelay: '3s' }}
+                      ></div>
                     </div>
                     
                     <div className="relative z-10 container mx-auto text-center px-4">

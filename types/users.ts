@@ -1,7 +1,8 @@
 
 export interface User {
     address: string | null;
-    hotBalance: number;
+    hotBalance: number; // Represents claimable balance during presale, or wallet balance post-claim
+    walletHotBalance: number; // Always represents the on-chain wallet balance
     solBalance: number;
     usdcBalance: number;
     // Affiliate Program Fields
@@ -11,11 +12,13 @@ export interface User {
     validatedTwitterHandle?: string;
 }
 
-export type UserHookReturn = User & {
-    updateUserBalance: (newBalance: number) => void;
-    updateUserSolBalance: (newBalance: number) => void;
-    updateUserUsdcBalance: (newBalance: number) => void;
-    deductFunds: (amount: number, currency: 'SOL' | 'USDC') => void;
-    creditFunds: (amount: number, currency: 'SOL' | 'USDC' | 'HOT') => void;
+// Return type of the useUser hook, manages profile-specific state
+export type UserProfileHookReturn = {
+    address: string | null;
+    referralCode: string | null;
+    referralRewards: number;
+    hasClaimedRetweetBonus: boolean;
+    validatedTwitterHandle: string | undefined;
     claimRetweetBonus: (twitterHandle: string) => void;
+    addReferralReward: (amount: number) => void;
 };

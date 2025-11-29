@@ -76,14 +76,14 @@ const TradePanel: React.FC = () => {
         );
     }
     
-    const userPaymentBalance = paymentCurrency === 'SOL' ? (user?.solBalance ?? 0) : (user?.usdcBalance ?? 0);
+    const userPaymentBalance = paymentCurrency === 'SOL' ? user.solBalance : user.usdcBalance;
     const requiredPaymentAmount = parseFloat(payAmount) || 0;
     const hasSufficientPaymentBalance = userPaymentBalance >= requiredPaymentAmount;
 
     const isButtonDisabled = !hotAmount || 
         parseFloat(hotAmount) <= 0 || 
         transactions.status === 'processing' ||
-        (mode === 'sell' && parseFloat(hotAmount) > user.hotBalance) || 
+        (mode === 'sell' && parseFloat(hotAmount) > user.walletHotBalance) || 
         (mode === 'buy' && !hasSufficientPaymentBalance);
 
     let buttonText;
@@ -91,7 +91,7 @@ const TradePanel: React.FC = () => {
         buttonText = 'Processing...';
     } else if (mode === 'buy' && !hasSufficientPaymentBalance && wallets.isConnected) {
         buttonText = `Insufficient ${paymentCurrency}`;
-    } else if (mode === 'sell' && parseFloat(hotAmount) > user.hotBalance && wallets.isConnected) {
+    } else if (mode === 'sell' && parseFloat(hotAmount) > user.walletHotBalance && wallets.isConnected) {
         buttonText = 'Insufficient HOT';
     } else {
         buttonText = mode === 'buy' ? 'Buy HOT' : 'Sell HOT';
@@ -108,8 +108,8 @@ const TradePanel: React.FC = () => {
             <div className="flex-grow flex flex-col justify-center">
                  <div className="bg-brand-light-dark dark:bg-brand-dark-lighter rounded-lg p-4 space-y-3">
                     <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">Your HOT Balance:</span>
-                        <span className="font-bold text-gray-900 dark:text-white">{formatNumber(user.hotBalance)}</span>
+                        <span className="text-gray-500 dark:text-gray-400">Your Wallet HOT Balance:</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{formatNumber(user.walletHotBalance)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-500 dark:text-gray-400">Market Price:</span>
@@ -126,8 +126,8 @@ const TradePanel: React.FC = () => {
                             {wallets.isConnected && (
                                 <div className="text-xs text-right font-medium text-gray-500 dark:text-gray-400">
                                     Balance: {paymentCurrency === 'SOL' 
-                                        ? `${(user?.solBalance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL`
-                                        : `${(user?.usdcBalance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC`
+                                        ? `${(user.solBalance).toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL`
+                                        : `${(user.usdcBalance).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC`
                                     }
                                 </div>
                             )}

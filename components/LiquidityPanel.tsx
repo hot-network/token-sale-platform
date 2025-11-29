@@ -1,7 +1,7 @@
+
 import React from 'react';
 import useNetwork from '../hooks/useNetwork';
 import { useLiquidityPoolsData } from '../hooks/use-liquidity-pools-data';
-// FIX: Corrected import path for LiquidityPool from `../types` to `../types/pools`.
 import { LiquidityPool } from '../types/pools';
 
 const PoolRow: React.FC<{ pool: LiquidityPool }> = ({ pool }) => {

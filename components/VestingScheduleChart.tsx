@@ -29,8 +29,8 @@ const VestingScheduleChart: React.FC = () => {
           labelStyle={{ color: textColor, fontWeight: 'bold' }}
         />
         <Legend wrapperStyle={{fontSize: '12px', color: textColor, paddingTop: '10px'}} />
-        <Bar dataKey="Cliff (Months)" stackId="a" fill="#8C7F79" radius={[5, 0, 0, 5]} />
-        <Bar dataKey="Vesting Period (Months)" stackId="a" fill="#D0BFB4" radius={[0, 5, 5, 0]} />
+        <Bar dataKey="Cliff (Months)" stackId="a" fill="#B3A184" radius={[5, 0, 0, 5]} />
+        <Bar dataKey="Vesting Period (Months)" stackId="a" fill="#E0C9A6" radius={[0, 5, 5, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

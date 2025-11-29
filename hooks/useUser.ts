@@ -1,94 +1,63 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { User, UserHookReturn } from '../types/users';
 import { WalletAdapter } from '../types/wallets';
 import { ConnectionStatus } from '../types/wallets';
 import { generateReferralCode } from '../lib/hot-network/affiliate';
+import { UserProfileHookReturn } from '../types/users';
+import { RETWEET_BONUS_AMOUNT } from '../constants';
 
-export default function useUser(adapter: WalletAdapter | null, status: ConnectionStatus): UserHookReturn {
-    const [user, setUser] = useState<User>({
+export default function useUser(adapter: WalletAdapter | null, status: ConnectionStatus): UserProfileHookReturn {
+    const [profile, setProfile] = useState<{
+        address: string | null;
+        referralCode: string | null;
+        referralRewards: number;
+        hasClaimedRetweetBonus: boolean;
+        validatedTwitterHandle: string | undefined;
+    }>({
         address: null,
-        hotBalance: 0,
-        solBalance: 0,
-        usdcBalance: 0,
         referralCode: null,
         referralRewards: 0,
         hasClaimedRetweetBonus: false,
+        validatedTwitterHandle: undefined,
     });
 
     useEffect(() => {
         if (status === 'connected' && adapter) {
-            setUser({ 
+            setProfile(prev => ({
+                ...prev,
                 address: adapter.address,
-                hotBalance: 0,
-                solBalance: 10, // Mock starting balance for simulation
-                usdcBalance: 1000, // Mock starting balance for simulation
                 referralCode: generateReferralCode(adapter.address),
-                referralRewards: 0,
-                hasClaimedRetweetBonus: false,
-            });
+            }));
         } else if (status === 'disconnected') {
-            setUser({ 
-                address: null, 
-                hotBalance: 0, 
-                solBalance: 0, 
-                usdcBalance: 0,
+            setProfile({
+                address: null,
                 referralCode: null,
                 referralRewards: 0,
                 hasClaimedRetweetBonus: false,
+                validatedTwitterHandle: undefined,
             });
         }
     }, [status, adapter]);
 
-    const updateUserBalance = useCallback((newBalance: number) => {
-        setUser(prev => ({ ...prev, hotBalance: newBalance }));
-    }, []);
-
-    const updateUserSolBalance = useCallback((newBalance: number) => {
-        setUser(prev => ({ ...prev, solBalance: newBalance }));
-    }, []);
-
-    const updateUserUsdcBalance = useCallback((newBalance: number) => {
-        setUser(prev => ({...prev, usdcBalance: newBalance }));
-    }, []);
-    
-    const deductFunds = useCallback((amount: number, currency: 'SOL' | 'USDC') => {
-        if (currency === 'SOL') {
-            setUser(prev => ({ ...prev, solBalance: Math.max(0, prev.solBalance - amount) }));
-        } else {
-            setUser(prev => ({ ...prev, usdcBalance: Math.max(0, prev.usdcBalance - amount) }));
-        }
-    }, []);
-
-    const creditFunds = useCallback((amount: number, currency: 'SOL' | 'USDC' | 'HOT') => {
-        if (currency === 'SOL') {
-            setUser(prev => ({ ...prev, solBalance: prev.solBalance + amount }));
-        } else if (currency === 'USDC') {
-            setUser(prev => ({ ...prev, usdcBalance: prev.usdcBalance + amount }));
-        } else {
-            setUser(prev => ({ ...prev, hotBalance: prev.hotBalance + amount }));
-        }
-    }, []);
-
     const claimRetweetBonus = useCallback((twitterHandle: string) => {
-        setUser(prev => {
-            if (prev.hasClaimedRetweetBonus) return prev; // Prevent double-claiming
+        setProfile(prev => {
+            if (prev.hasClaimedRetweetBonus) return prev;
             return {
                 ...prev,
-                hotBalance: prev.hotBalance + 1000,
+                referralRewards: prev.referralRewards + RETWEET_BONUS_AMOUNT,
                 hasClaimedRetweetBonus: true,
                 validatedTwitterHandle: twitterHandle,
             };
         });
     }, []);
+    
+    const addReferralReward = useCallback((amount: number) => {
+        setProfile(prev => ({...prev, referralRewards: prev.referralRewards + amount }));
+    }, []);
 
     return useMemo(() => ({
-        ...user,
-        updateUserBalance,
-        updateUserSolBalance,
-        updateUserUsdcBalance,
-        deductFunds,
-        creditFunds,
+        ...profile,
         claimRetweetBonus,
-    }), [user, updateUserBalance, updateUserSolBalance, updateUserUsdcBalance, deductFunds, creditFunds, claimRetweetBonus]);
+        addReferralReward,
+    }), [profile, claimRetweetBonus, addReferralReward]);
 }

@@ -10,7 +10,7 @@ const data = [
   { name: 'Marketing', value: 5 },
 ];
 
-const COLORS = ['#D0BFB4', '#A6988D', '#8C7F79', '#726762', '#584F4C'];
+const COLORS = ['#B3A184', '#E0C9A6', '#8C7F79', '#D9C5A8', '#6B5B4B'];
 
 const DistributionDonutChart: React.FC = () => {
     return (

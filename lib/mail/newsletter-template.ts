@@ -1,3 +1,4 @@
+
 export const createConfirmationEmailHtml = (email: string): string => {
     const brandColor = '#D0BFB4';
     const textColor = '#333333';

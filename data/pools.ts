@@ -1,4 +1,3 @@
-
 import { LiquidityPool } from '../types/pools';
 import { SolanaNetwork } from '../types';
 import { DEXS } from './dex';
@@ -44,7 +43,9 @@ const DEVNET_POOLS: LiquidityPool[] = [
 ];
 
 export const POOLS: Record<SolanaNetwork, LiquidityPool[]> = {
-    'mainnet-beta': MAINNET_POOLS,
+    // FIX: Changed 'mainnet-beta' to 'mainnet' to match the SolanaNetwork type.
+    'mainnet': MAINNET_POOLS,
     'devnet': DEVNET_POOLS,
-    'testnet': DEVNET_POOLS, // Use same mock data for testnet
+    // FIX: Changed 'testnet' to 'localnet' to match the SolanaNetwork type.
+    'localnet': DEVNET_POOLS,
 };

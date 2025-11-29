@@ -22,14 +22,18 @@
     "@solana/wallet-adapter-react": "^0.15.39",
     "@solana/wallet-adapter-react-ui": "^0.9.39",
     "@solana/wallet-adapter-wallets": "^0.19.37",
+    "@solana/wallet-standard": "^1.1.4",
     "@solana/web3.js": "^1.98.4",
+    "@supabase/supabase-js": "^2.86.0",
     "axios": "^1.13.2",
     "bs58": "^5.0.0",
+    "dotenv": "^17.2.3",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.11",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.5.1",
+    "swagger": "^0.7.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {

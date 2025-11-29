@@ -1,14 +1,60 @@
-
 openapi: 3.0.0
 info:
-  title: HOT Network API
+  title: HOT NETWORK Launchpad API
   description: API for the HOT Token Sale Launchpad, handling affiliate rewards and other backend services.
   version: 1.0.0
 servers:
-  - url: https://api.hotnetwork.fun
+  - url: https://api.launchpad.hotnetwork.fun
     description: Production Server
 
 paths:
+  /api/faucet:
+    post:
+      summary: Request devnet tokens
+      description: Allows a user to request a drip of devnet/localnet tokens (SOL and HOT) for testing. This endpoint is disabled on mainnet and may have rate limiting.
+      tags:
+        - Faucet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - walletAddress
+                - network
+              properties:
+                walletAddress:
+                  type: string
+                  description: The user's Solana wallet address.
+                  example: 'user1234...abcd'
+                network:
+                  type: string
+                  description: The network the user is on.
+                  enum: [devnet, localnet]
+                  example: 'devnet'
+      responses:
+        '200':
+          description: Faucet drip successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: '10,000 HOT and 0.1 SOL have been sent to your wallet!'
+                  txSignature:
+                    type: string
+                    example: 'sim_faucet_tx_1678886400000'
+        '400':
+          description: Bad Request, such as requesting on mainnet or providing invalid input.
+        '429':
+          description: Too Many Requests, user has hit the rate limit.
+
   /api/affiliate/claim-retweet:
     post:
       summary: Claim the one-time retweet bonus

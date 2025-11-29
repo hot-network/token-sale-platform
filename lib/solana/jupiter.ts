@@ -44,11 +44,12 @@ export async function getJupiterSwapQuote(
  * In a real dApp, this would involve fetching the transaction from Jupiter's API
  * and having the user's wallet sign and send it.
  */
-export async function executeJupiterSwap(amount: number, currency: 'SOL' | 'USDC', direction: 'buy' | 'sell'): Promise<{ success: boolean; error?: string }> {
+export async function executeJupiterSwap(amount: number, currency: 'SOL' | 'USDC', direction: 'buy' | 'sell'): Promise<{ success: boolean; signature?: string; error?: string }> {
      console.log(`[Jupiter] Simulating ${direction}ing ${amount} ${STATIC_CURRENCY_INFO.HOT.symbol} with ${currency}...`);
      
      await new Promise(resolve => setTimeout(resolve, 1500));
      
-     console.log(`[Jupiter] Simulated swap successful.`);
-     return { success: true };
+     const signature = `sim_jupiter_tx_${Date.now()}`;
+     console.log(`[Jupiter] Simulated swap successful with signature: ${signature}`);
+     return { success: true, signature };
 }

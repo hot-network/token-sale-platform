@@ -2,7 +2,9 @@ onlyBuiltDependencies:
   - bigint-buffer
   - blake-hash
   - bufferutil
+  - core-js
   - esbuild
+  - nodemon
   - protobufjs
   - tiny-secp256k1
   - usb

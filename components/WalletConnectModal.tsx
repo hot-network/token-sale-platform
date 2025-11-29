@@ -1,8 +1,7 @@
 
 import React from 'react';
 import Modal from './modals/Modal';
-import WalletButton from './WalletButton';
-import { getWalletIcon } from './WalletIcons';
+import WalletProviderList from './WalletProviderList';
 import useTokenSalesContext from '../hooks/useTokenSalesContext';
 import { WalletProvider } from '../types/wallets';
 
@@ -25,31 +24,7 @@ const WalletConnectModal: React.FC = () => {
   
   return (
     <Modal isOpen={isWalletModalOpen} onClose={closeWalletModal} title="Connect a Wallet">
-        <div className="space-y-4">
-            <button
-                onClick={handleEmailLogin}
-                className="flex items-center w-full p-4 bg-gray-100 dark:bg-brand-dark-lighter rounded-lg text-left hover:bg-gray-200 dark:hover:bg-brand-dark-light transition-colors duration-200"
-            >
-                <div className="w-10 h-10 flex items-center justify-center text-brand-accent text-2xl"><i className="fa-solid fa-envelope"></i></div>
-                <div className="ml-4">
-                    <span className="font-semibold text-lg text-gray-900 dark:text-white">Continue with Email</span>
-                </div>
-            </button>
-            <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-                </div>
-                <div className="relative flex justify-center">
-                    <span className="bg-white dark:bg-brand-dark-light px-2 text-sm text-gray-500">or</span>
-                </div>
-            </div>
-            <WalletButton name="Phantom" icon={getWalletIcon('Phantom')} onClick={() => handleConnect('phantom')} />
-            <WalletButton name="Solflare" icon={getWalletIcon('Solflare')} onClick={() => handleConnect('solflare')} />
-            <WalletButton name="Backpack" icon={getWalletIcon('Backpack')} onClick={() => handleConnect('backpack')} />
-            <WalletButton name="Ledger" icon={getWalletIcon('Ledger')} onClick={() => handleConnect('ledger')} />
-            <WalletButton name="Base" icon={getWalletIcon('Base')} onClick={() => handleConnect('base')} />
-            <WalletButton name="Sollet" icon={getWalletIcon('Sollet')} onClick={() => handleConnect('sollet')} />
-        </div>
+        <WalletProviderList onConnect={handleConnect} onEmailLogin={handleEmailLogin} />
          <div className="mt-6 p-3 bg-red-500/10 border-l-4 border-red-500 text-red-700 dark:text-red-400 text-xs">
             <p className="font-bold flex items-center gap-2">
                 <i className="fa-solid fa-shield-halved"></i>

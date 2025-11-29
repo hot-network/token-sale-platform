@@ -1,4 +1,3 @@
-
 import React from 'react';
 import TokenSaleChart from './TokenSaleChart';
 import { BirdeyeMarketData } from '../types';
@@ -8,6 +7,7 @@ interface TokenStatsPanelProps {
   userHOTBalance: number;
   totalSold: number;
   marketStats: BirdeyeMarketData | null;
+  hardcap: number;
 }
 
 const StatItem: React.FC<{ icon: string; label: string; value: string; children?: React.ReactNode }> = ({ icon, label, value, children }) => (
@@ -30,10 +30,10 @@ const TokenStatsPanel: React.FC<TokenStatsPanelProps> = ({
   userHOTBalance,
   totalSold,
   marketStats,
+  hardcap,
 }) => {
   const totalRaised = totalSold * hotPriceUSD;
-  const hardcapRaised = 50000; // Mock hardcap for progress bar
-  const raisedPercent = Math.min(100, (totalRaised / hardcapRaised) * 100);
+  const raisedPercent = hardcap > 0 ? Math.min(100, (totalSold / hardcap) * 100) : 0;
 
   const formatCurrency = (value: number, decimals = 0) => `$${value.toLocaleString('en-US', { maximumFractionDigits: decimals })}`;
   const formatNumber = (value: number) => value.toLocaleString('en-US');

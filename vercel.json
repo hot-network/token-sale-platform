@@ -1,0 +1,44 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": null,
+  "functions": {
+    "api/status/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/user-state/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/newsletter/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/audit/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/affiliate/claim-retweet/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/transactions/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/rpc/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/faucet/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/welcome/route.ts": {
+      "runtime": "edge"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/welcome",
+      "destination": "/api/welcome"
+    },
+    {
+      "source": "/((?!api/|assets/|docs/|legal/|launchpad|sw.js|manifest.json|favicon.ico|_next/|static/|public/|programs/|target/|welcome)[^/\\.]+)",
+      "destination": "/"
+    }
+  ]
+}

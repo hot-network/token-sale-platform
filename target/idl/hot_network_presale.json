@@ -1,0 +1,328 @@
+
+{
+  "version": "0.1.0",
+  "name": "hot_network_presale",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "presaleState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "presaleTokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "presaleTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "paymentVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "startTimestamp",
+          "type": "i64"
+        },
+        {
+          "name": "endTimestamp",
+          "type": "i64"
+        },
+        {
+          "name": "softCapSol",
+          "type": "u64"
+        },
+        {
+          "name": "hardCapSol",
+          "type": "u64"
+        },
+        {
+          "name": "priceNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "priceDenominator",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "purchaseTokens",
+      "accounts": [
+        {
+          "name": "buyer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "presaleState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userContribution",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "paymentVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "hotTokenAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "claimTokens",
+      "accounts": [
+        {
+          "name": "buyer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "presaleState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "presaleTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userContribution",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "buyerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PresaleState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "presaleTokenMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "paymentVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "startTimestamp",
+            "type": "i64"
+          },
+          {
+            "name": "endTimestamp",
+            "type": "i64"
+          },
+          {
+            "name": "softCapSol",
+            "type": "u64"
+          },
+          {
+            "name": "hardCapSol",
+            "type": "u64"
+          },
+          {
+            "name": "priceNumerator",
+            "type": "u64"
+          },
+          {
+            "name": "priceDenominator",
+            "type": "u64"
+          },
+          {
+            "name": "totalRaisedSol",
+            "type": "u64"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserContribution",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyer",
+            "type": "publicKey"
+          },
+          {
+            "name": "hotTokensPurchased",
+            "type": "u64"
+          },
+          {
+            "name": "hasClaimed",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "PurchaseEvent",
+      "fields": [
+        {
+          "name": "buyer",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "solAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "hotTokenAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "ClaimEvent",
+      "fields": [
+        {
+          "name": "buyer",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "claimedAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "SaleNotStarted",
+      "msg": "Sale has not started yet."
+    },
+    {
+      "code": 6001,
+      "name": "SaleEnded",
+      "msg": "Sale has already ended."
+    },
+    {
+      "code": 6002,
+      "name": "SaleNotActive",
+      "msg": "Sale is not currently active."
+    },
+    {
+      "code": 6003,
+      "name": "HardCapReached",
+      "msg": "The hard cap for this sale has been reached."
+    },
+    {
+      "code": 6004,
+      "name": "AlreadyClaimed",
+      "msg": "You have already claimed your tokens."
+    },
+    {
+      "code": 6005,
+      "name": "SaleNotEnded",
+      "msg": "Sale has not ended yet, cannot claim tokens."
+    },
+    {
+      "code": 6006,
+      "name": "NoTokensToClaim",
+      "msg": "You have no tokens to claim."
+    },
+    {
+      "code": 6007,
+      "name": "CalculationError",
+      "msg": "Calculation error occurred."
+    }
+  ]
+}

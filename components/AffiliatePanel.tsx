@@ -8,6 +8,7 @@ const AffiliatePanel: React.FC = () => {
     const { wallets, openWalletModal, affiliate, addToast } = useTokenSalesContext();
     const [copied, setCopied] = useState(false);
     const [twitterHandle, setTwitterHandle] = useState('');
+    const [validationError, setValidationError] = useState('');
 
     const handleCopy = () => {
         navigator.clipboard.writeText(affiliate.referralLink);
@@ -16,7 +17,15 @@ const AffiliatePanel: React.FC = () => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleClaim = () => {
+    const handleSubmitClaim = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (affiliate.isClaiming || affiliate.hasClaimedBonus) return;
+
+        if (!twitterHandle || !twitterHandle.startsWith('@') || twitterHandle.length < 2) {
+            setValidationError("Please enter a valid handle (e.g., @YourHandle).");
+            return;
+        }
+        setValidationError('');
         affiliate.claimBonus(twitterHandle);
     };
 
@@ -79,31 +88,45 @@ const AffiliatePanel: React.FC = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400 my-2">Help spread the word about the presale and get a free, one-time reward.</p>
                 <p className="text-3xl font-bold text-brand-accent my-3">{RETWEET_BONUS_AMOUNT.toLocaleString()} HOT</p>
                 
-                {!affiliate.hasClaimedBonus && (
-                     <div className="mt-2 space-y-2">
-                        <label htmlFor="twitter-handle" className="text-xs font-semibold text-gray-500">Enter your X Handle to validate</label>
-                        <input
-                            id="twitter-handle"
-                            type="text"
-                            value={twitterHandle}
-                            onChange={(e) => setTwitterHandle(e.target.value)}
-                            placeholder="@YourHandle"
-                            className="w-full text-center bg-brand-light dark:bg-brand-dark border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm focus:ring-brand-accent focus:border-brand-accent"
-                        />
-                    </div>
+                {affiliate.hasClaimedBonus ? (
+                    <Button 
+                        disabled={true}
+                        className="w-full mt-4 bg-brand-accent text-brand-dark disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        Bonus Claimed!
+                    </Button>
+                ) : (
+                    <form onSubmit={handleSubmitClaim} className="mt-2">
+                        <div>
+                            <label htmlFor="twitter-handle" className="text-xs font-semibold text-gray-500">Enter your X Handle to validate</label>
+                            <input
+                                id="twitter-handle"
+                                type="text"
+                                value={twitterHandle}
+                                onChange={(e) => {
+                                    setTwitterHandle(e.target.value);
+                                    if (validationError) setValidationError('');
+                                }}
+                                placeholder="@YourHandle"
+                                className={`w-full text-center bg-brand-light dark:bg-brand-dark border rounded-lg p-2 mt-1 text-sm focus:ring-brand-accent focus:border-brand-accent transition-colors ${
+                                    validationError 
+                                    ? 'border-red-500' 
+                                    : 'border-gray-300 dark:border-gray-600'
+                                }`}
+                                aria-invalid={!!validationError}
+                                aria-describedby="twitter-error"
+                            />
+                            {validationError && <p id="twitter-error" className="text-xs text-red-500 mt-1">{validationError}</p>}
+                        </div>
+                        <Button 
+                            type="submit"
+                            disabled={affiliate.isClaiming || !twitterHandle}
+                            className="w-full mt-4 bg-brand-accent text-brand-dark disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {affiliate.isClaiming ? 'Validating...' : 'Claim Your Free Tokens'}
+                        </Button>
+                    </form>
                 )}
-
-                <Button 
-                    onClick={handleClaim} 
-                    disabled={affiliate.hasClaimedBonus || affiliate.isClaiming || (!affiliate.hasClaimedBonus && !twitterHandle)}
-                    className="w-full mt-4 bg-brand-accent text-brand-dark disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                    {affiliate.isClaiming 
-                        ? 'Validating & Claiming...' 
-                        : affiliate.hasClaimedBonus 
-                            ? 'Bonus Claimed!' 
-                            : 'Claim Your Free Tokens'}
-                </Button>
             </div>
         </div>
     );

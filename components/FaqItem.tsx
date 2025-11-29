@@ -15,7 +15,7 @@ const FaqItem: React.FC<FaqItemProps> = ({ index, faq, isOpen, onClick, isLast }
     <div className={!isLast ? "border-b border-gray-300 dark:border-gray-600" : ""}>
       <button
         onClick={onClick}
-        className="w-full text-left flex justify-between items-center py-6 px-6 sm:px-8 focus:outline-none"
+        className="w-full text-left flex justify-between items-center py-6 px-6 sm:px-8 focus:outline-none hover:bg-gray-100/50 dark:hover:bg-brand-dark-lighter/30 transition-colors"
         aria-expanded={isOpen}
         aria-controls={answerId}
       >

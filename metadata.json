@@ -1,5 +1,5 @@
 {
-  "name": "HOT Token Sale Launchpad",
-  "description": "A presale launchpad for the HOT token, featuring real-time price feeds, user balance tracking, and a dynamic token sale interface.",
+  "name": "HOT Token Sale Launchpad v1.0.0",
+  "description": "A mainnet-ready presale launchpad for the HOT token, featuring real-time price feeds, user balance tracking, and a dynamic token sale interface.",
   "requestFramePermissions": []
 }

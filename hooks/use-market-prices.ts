@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { getTokenMarketData } from '../lib/solana/birdeye';
 import { getSolPrice as getLiveSolPrice } from '../lib/solana/pyth';
@@ -6,7 +5,7 @@ import { logger } from '../services/logger';
 import { BirdeyeMarketData, SolanaNetwork } from '../types';
 import { NETWORKS } from '../configs/network-config';
 
-const PRESALE_PRICE = 0.0000127;
+const PRESALE_PRICE = 0.0000018;
 
 export function useMarketPrices(network: SolanaNetwork, isListedOnDex: boolean) {
     const [presaleHotPrice, setPresaleHotPrice] = useState<number>(PRESALE_PRICE);
@@ -20,19 +19,17 @@ export function useMarketPrices(network: SolanaNetwork, isListedOnDex: boolean) 
         const networkConfig = NETWORKS[network];
 
         const fetchCorePrices = async () => {
-           if (network !== 'mainnet-beta') {
-               setSolPrice(150.00); // Mock price for dev/test
-               return;
-           }
            try {
-               setSolPrice(await getLiveSolPrice());
+               const fetchedSolPrice = await getLiveSolPrice();
+               logger.info('[useMarketPrices]', `Current SOL/USD price from Pyth: $${fetchedSolPrice}`);
+               setSolPrice(fetchedSolPrice);
            } catch (error) {
                logger.error('[useMarketPrices]', "Failed to fetch SOL price.", error);
            }
        };
 
        const fetchMarketStats = async () => {
-           if (!isListedOnDex || network !== 'mainnet-beta') {
+           if (!isListedOnDex) {
                if (marketStats !== null) {
                    setMarketStats(null);
                    setMarketHotPrice(0);
@@ -40,7 +37,7 @@ export function useMarketPrices(network: SolanaNetwork, isListedOnDex: boolean) 
                return;
            }
            try {
-               const hotMarketData = await getTokenMarketData(networkConfig.hotTokenMint);
+               const hotMarketData = await getTokenMarketData(networkConfig.hotTokenMint, network);
                setMarketStats(hotMarketData);
                setMarketHotPrice(hotMarketData?.price ?? 0);
            } catch (error) {

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createSolanaPayUrl } from '../../lib/solana/solana-pay';
 import useTokenSalesContext from '../../hooks/useTokenSalesContext';
+import useNetwork from '../../hooks/useNetwork';
 
 interface SolanaPayWidgetProps {
     amount: number;
@@ -12,14 +13,15 @@ interface SolanaPayWidgetProps {
 
 const SolanaPayWidget: React.FC<SolanaPayWidgetProps> = (props) => {
     const { transactions } = useTokenSalesContext();
+    const { config: networkConfig } = useNetwork();
     const [status, setStatus] = useState<'idle' | 'waiting' | 'verifying'>('idle');
 
     // Generate a unique reference for this payment request
     const reference = useMemo(() => `hot_sale_${Date.now()}`, []);
 
     const solanaPayUrl = useMemo(() => {
-        return createSolanaPayUrl(undefined, props.amount, props.currency, reference);
-    }, [props.amount, props.currency, reference]);
+        return createSolanaPayUrl(networkConfig, props.amount, props.currency, reference);
+    }, [networkConfig, props.amount, props.currency, reference]);
 
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(solanaPayUrl)}`;
 

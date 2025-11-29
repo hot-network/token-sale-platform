@@ -11,6 +11,7 @@ const Launchpad = lazy(() => import('./pages/Launchpad'));
 const Docs = lazy(() => import('./components/docs/page'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Legal = lazy(() => import('./pages/Legal'));
+const Faucet = lazy(() => import('./pages/Faucet'));
 const WalletConnectModal = lazy(() => import('./components/WalletConnectModal'));
 
 
@@ -96,6 +97,8 @@ const AppContent: React.FC = () => {
     switch (firstSegment) {
       case 'launchpad':
         return <Launchpad toggleTheme={toggleTheme} currentTheme={theme} />;
+      case 'faucet':
+        return <Faucet toggleTheme={toggleTheme} currentTheme={theme} />;
       case 'docs':
         const subPath = pathSegments.length > 1 ? pathSegments[1] : undefined;
         return <Docs toggleTheme={toggleTheme} currentTheme={theme} subPath={subPath as DocKey | undefined} />;

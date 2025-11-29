@@ -1,3 +1,4 @@
+import { HOT_TOKEN_INFO } from '../data/hot-token';
 
 export const STATIC_CURRENCY_INFO = {
     SOL: {
@@ -12,10 +13,5 @@ export const STATIC_CURRENCY_INFO = {
         decimals: 6,
         logo: '/assets/usdc.png',
     },
-    HOT: {
-        name: 'HOT Network Token',
-        symbol: 'HOT',
-        decimals: 9,
-        logo: '/assets/hot.png',
-    }
+    HOT: HOT_TOKEN_INFO,
 };

@@ -1,3 +1,4 @@
+
 export type WalletProvider = 'phantom' | 'solflare' | 'sollet' | 'embedded' | 'backpack' | 'ledger' | 'base' | null;
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 

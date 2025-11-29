@@ -37,7 +37,7 @@ const TokenSaleChart: React.FC<TokenSaleChartProps> = ({ price, userBalance }) =
   }, [price, userBalance]); 
 
 
-  const gridColor = isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)";
+  const gridColor = isDarkMode ? "rgba(224, 201, 166, 0.1)" : "rgba(0, 0, 0, 0.1)";
   const textColor = isDarkMode ? "#9ca3af" : "#6b7280";
   const tooltipBg = isDarkMode ? "rgba(17, 17, 17, 0.7)" : "rgba(255, 255, 255, 0.7)";
   const tooltipBorder = isDarkMode ? "#2a2a2a" : "#e5e7eb";
@@ -48,26 +48,19 @@ const TokenSaleChart: React.FC<TokenSaleChartProps> = ({ price, userBalance }) =
       <LineChart data={chartData} margin={{ top: 5, right: isMobile ? 0 : 10, left: -20, bottom: 5 }}>
         <defs>
             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#D0BFB4" stopOpacity={0.5}/>
-                <stop offset="95%" stopColor="#D0BFB4" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#E0C9A6" stopOpacity={0.6}/>
+                <stop offset="95%" stopColor="#E0C9A6" stopOpacity={0.05}/>
             </linearGradient>
             <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#A6988D" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="#A6988D" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#8C7F79" stopOpacity={0.5}/>
+                <stop offset="95%" stopColor="#8C7F79" stopOpacity={0.05}/>
             </linearGradient>
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
         <XAxis dataKey="name" tick={false} axisLine={false} />
         <YAxis 
             yAxisId="left" 
-            stroke="#D0BFB4"
+            stroke="#B3A184"
             tick={{ fill: textColor, fontSize: 12 }}
             domain={['dataMin * 0.9999', 'dataMax * 1.0001']}
             tickFormatter={(value) => `$${Number(value).toFixed(7)}`}
@@ -76,7 +69,7 @@ const TokenSaleChart: React.FC<TokenSaleChartProps> = ({ price, userBalance }) =
             <YAxis 
                 yAxisId="right" 
                 orientation="right" 
-                stroke="#A6988D"
+                stroke="#8C7F79"
                 tick={{ fill: textColor, fontSize: 12 }}
                 domain={[dataMin => (dataMin > 1000 ? dataMin - 1000: 0), dataMax => (dataMax + 1000)]}
                 tickFormatter={(value) => `${(Number(value)/1000).toFixed(1)}k`}
@@ -98,18 +91,18 @@ const TokenSaleChart: React.FC<TokenSaleChartProps> = ({ price, userBalance }) =
           }}
         />
         <Legend wrapperStyle={{fontSize: '12px', color: textColor}} />
-        <Area yAxisId="left" type="monotone" dataKey="price" stroke="none" fill="url(#colorPrice)" animationDuration={1000} />
-        {!isMobile && <Area yAxisId="right" type="monotone" dataKey="balance" stroke="none" fill="url(#colorBalance)" animationDuration={1000} />}
+        <Area yAxisId="left" type="monotone" dataKey="price" stroke="none" fill="url(#colorPrice)" animationDuration={1500} />
+        {!isMobile && <Area yAxisId="right" type="monotone" dataKey="balance" stroke="none" fill="url(#colorBalance)" animationDuration={1500} />}
         <Line 
             yAxisId="left" 
             type="monotone" 
             dataKey="price" 
             name="HOT/USD"
-            stroke="#D0BFB4" 
-            strokeWidth={3} 
+            stroke="#B3A184" 
+            strokeWidth={2.5} 
             dot={false}
-            filter="url(#glow)"
-            animationDuration={1000}
+            animationDuration={1500}
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(179, 161, 132, 0.5))' }}
             />
         {!isMobile && (
             <Line 
@@ -117,10 +110,11 @@ const TokenSaleChart: React.FC<TokenSaleChartProps> = ({ price, userBalance }) =
                 type="monotone" 
                 dataKey="balance" 
                 name="Your Balance"
-                stroke="#A6988D" 
-                strokeWidth={3} 
+                stroke="#8C7F79" 
+                strokeWidth={2.5} 
                 dot={false}
-                animationDuration={1000}
+                animationDuration={1500}
+                style={{ filter: 'drop-shadow(0 2px 4px rgba(140, 127, 121, 0.4))' }}
                 />
         )}
       </LineChart>
