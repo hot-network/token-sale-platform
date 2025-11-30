@@ -61,7 +61,7 @@ const TokenomicsHighlights: React.FC = () => {
                         />
                          <MetricCard 
                             title="Presale Hard Cap" 
-                            value="$10.8k USD"
+                            value="$72k USD"
                             description="The maximum amount to be raised, concluding the sale once reached."
                             icon="fa-flag-checkered"
                         />
@@ -73,8 +73,9 @@ const TokenomicsHighlights: React.FC = () => {
                         footer={
                              <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                                 <li><strong>40%</strong> Presale</li>
-                                <li><strong>20%</strong> Liquidity</li>
-                                <li><strong>35%</strong> Ecosystem & Team</li>
+                                <li><strong>25%</strong> Liquidity</li>
+                                <li><strong>15%</strong> Team & Advisors</li>
+                                <li><strong>15%</strong> Ecosystem Fund</li>
                                 <li><strong>5%</strong> Marketing</li>
                             </ul>
                         }
@@ -98,3 +99,4 @@ const TokenomicsHighlights: React.FC = () => {
 };
 
 export default TokenomicsHighlights;
+
