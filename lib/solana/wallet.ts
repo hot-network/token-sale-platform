@@ -69,8 +69,9 @@ export async function getSplTokenBalance(address: string, mintAddress: string, n
     if (network !== 'mainnet') {
         logger.info('[WalletLib]', `Fetching MOCK SPL token balance for mint ${mintAddress}`);
         await new Promise(resolve => setTimeout(resolve, 100));
-        if (mintAddress.includes('usdc')) return mockBlockchainBalances.usdc;
-        if (mintAddress.includes('hot')) return mockBlockchainBalances.hot;
+        const lowerMint = mintAddress.toLowerCase();
+        if (lowerMint.includes('usdc')) return mockBlockchainBalances.usdc;
+        if (lowerMint.includes('hot')) return mockBlockchainBalances.hot;
         return 0;
     }
 

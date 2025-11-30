@@ -78,7 +78,6 @@ export function useLiquidityPoolsData(network: SolanaNetwork) {
             try {
                 let networkPools: LiquidityPool[];
                 
-                // FIX: Changed 'mainnet-beta' to 'mainnet' to match the SolanaNetwork type.
                 if (network === 'mainnet') {
                     // This is the "fully wired" mainnet call
                     networkPools = await fetchMainnetPoolsFromApi();

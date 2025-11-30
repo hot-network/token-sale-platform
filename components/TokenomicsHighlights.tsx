@@ -2,7 +2,7 @@
 import React, { lazy, Suspense } from 'react';
 
 const DistributionDonutChart = lazy(() => import('./charts/DistributionDonutChart'));
-const VestingScheduleChart = lazy(() => import('./charts/VestingScheduleChart'));
+const VestingScheduleChart = lazy(() => import('./VestingScheduleChart'));
 
 const MetricCard: React.FC<{ title: string; value: string; description: string; icon: string }> = ({ title, value, description, icon }) => (
     <div className="bg-brand-light dark:bg-brand-dark p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
@@ -61,7 +61,7 @@ const TokenomicsHighlights: React.FC = () => {
                         />
                          <MetricCard 
                             title="Presale Hard Cap" 
-                            value="~33.2M USD"
+                            value="$10.8k USD"
                             description="The maximum amount to be raised, concluding the sale once reached."
                             icon="fa-flag-checkered"
                         />

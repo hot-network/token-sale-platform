@@ -1,5 +1,5 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
-// Fix: Import User from the correct file
 import { SaleState, Countdown, ContributionTier, Eligibility, SaleStageConfig } from '../types';
 import { User } from '../types/users';
 import useWallets from './useWallets';
@@ -15,6 +15,8 @@ import useAffiliate from './useAffiliate';
 import { logger } from '../services/logger';
 import { modifyMockBlockchainBalance } from '../lib/solana/wallet';
 import { FAUCET_AMOUNTS } from '../constants';
+import { getSolPrice } from '../lib/solana/pyth';
+import { fetchSaleStatus } from '../services/tokenSaleService';
 
 const calculateCountdown = (targetTimestamp: number): Countdown => {
     const nowInSeconds = Math.floor(Date.now() / 1000);
@@ -93,6 +95,10 @@ export default function useTokenSales() {
 
     const transactions = useTransactions({
         saleState,
+        saleConfig,
+        totalSold,
+        totalContributors,
+        marketStats,
         prices: { presaleHotPrice, marketHotPrice, solPrice },
         user,
         wallets,
@@ -126,13 +132,11 @@ export default function useTokenSales() {
                 throw new Error(result.message || 'Faucet request failed.');
             }
             
-            // This is the key part: simulate the balance update on the client
-            // after the server confirms the drip.
             modifyMockBlockchainBalance('sol', FAUCET_AMOUNTS.SOL);
             modifyMockBlockchainBalance('hot', FAUCET_AMOUNTS.HOT);
 
             addToast(result.message, 'success');
-            balances.refetch(); // Trigger a re-render with new balances
+            balances.refetch();
         } catch (err: any) {
             addToast(err.message, 'error');
         } finally {
@@ -140,7 +144,17 @@ export default function useTokenSales() {
         }
     }, [user.address, network, networkConfig.faucetEnabled, addToast, balances]);
 
-    // Effect for fetching user-specific sale data (contribution, claimed status)
+    const mintTestTokens = useCallback(() => {
+        if (!networkConfig.faucetEnabled) {
+            addToast("Minting is only available on testnets.", "error");
+            return;
+        }
+        const MINT_AMOUNT = 1_000_000_000;
+        modifyMockBlockchainBalance('hot', MINT_AMOUNT);
+        addToast(`Successfully minted ${MINT_AMOUNT.toLocaleString()} test HOT tokens!`, "success");
+        balances.refetch();
+    }, [networkConfig.faucetEnabled, addToast, balances]);
+
     useEffect(() => {
         const loadUserData = async () => {
             if (wallets.isConnected && user.address && network) {
@@ -155,7 +169,6 @@ export default function useTokenSales() {
                         setUserSaleData({ totalContribution: 0, hasClaimed: false });
                     }
                 } else {
-                    // For devnet/localnet, load from local storage
                     const savedContribution = localCacheGet<number>(`userContribution_${user.address}_${network}`) || 0;
                     const savedClaimed = localCacheGet<boolean>(`hasClaimed_${user.address}_${network}`) || false;
                     setUserSaleData({ totalContribution: savedContribution, hasClaimed: savedClaimed });
@@ -183,12 +196,10 @@ export default function useTokenSales() {
     }, [wallets.isConnected, user.address]);
 
     useEffect(() => {
-        const fetchSaleStatus = async () => {
+        const fetchSaleConfigAndStatus = async () => {
             setIsConfigLoading(true);
             try {
-                const response = await fetch(`/api/status?network=${network}`);
-                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
-                const data = await response.json();
+                const data = await fetchSaleStatus(network);
                 setSaleConfig(data.saleConfig);
                 setSaleState(data.saleState);
                 setTotalSold(data.totalSold);
@@ -200,8 +211,8 @@ export default function useTokenSales() {
                 setIsConfigLoading(false);
             }
         };
-        fetchSaleStatus();
-        const interval = setInterval(fetchSaleStatus, 15000);
+        fetchSaleConfigAndStatus();
+        const interval = setInterval(fetchSaleConfigAndStatus, 15000);
         return () => clearInterval(interval);
     }, [network]);
 
@@ -223,6 +234,19 @@ export default function useTokenSales() {
         setCountdown(calculateCountdown(targetTimestamp));
         return () => clearInterval(timer);
     }, [saleConfig, saleState]);
+    
+    useEffect(() => {
+        const fetchAndLogSolPrice = async () => {
+            try {
+                const price = await getSolPrice();
+                logger.info('[Pyth Price Fetch]', `The current SOL/USD price is: $${price.toFixed(4)}`);
+            } catch (error) {
+                logger.error('[Pyth Price Fetch]', 'Failed to fetch SOL/USD price.', error);
+            }
+        };
+
+        fetchAndLogSolPrice();
+    }, []);
 
     const sale = useMemo(() => ({
         state: saleState,
@@ -261,5 +285,6 @@ export default function useTokenSales() {
         isBalancesLoading: balances.isLoading,
         isDripping,
         dripFaucetTokens,
-    }), [sale, prices, wallets, user, transactions, eligibility, tier, isListedOnDex, marketStats, userSaleData.totalContribution, isWalletModalOpen, openWalletModal, closeWalletModal, addToast, toasts, removeToast, networkConfig, affiliate, isConfigLoading, balances.isLoading, isDripping, dripFaucetTokens]);
+        mintTestTokens,
+    }), [sale, prices, wallets, user, transactions, eligibility, tier, isListedOnDex, marketStats, userSaleData.totalContribution, isWalletModalOpen, openWalletModal, closeWalletModal, addToast, toasts, removeToast, networkConfig, affiliate, isConfigLoading, balances.isLoading, isDripping, dripFaucetTokens, mintTestTokens]);
 }

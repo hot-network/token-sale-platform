@@ -12,7 +12,7 @@ const Cta: React.FC = () => {
           <h2 className="text-3xl sm:text-4xl font-semibold font-serif text-brand-accent-dark dark:text-brand-accent mb-4 relative z-10">
             Build the Future of Content. Today.
           </h2>
-          <p className="max-w-2xl mx-auto text-gray-700 dark:text-gray-300 text-lg mb-8 relative z-10">
+          <p className="max-w-2xl mx-auto text-gray-300 dark:text-gray-300 text-lg mb-8 relative z-10">
             Explore the future of content creation. Launch the app to see our platform in action or join our community to stay involved.
           </p>
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -1,18 +1,22 @@
 
-import React, { useState, lazy, Suspense, useMemo } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import Modal from '../modals/Modal';
 import Button from '../Button';
 import AssetIcon from '../AssetIcons';
 import useTokenSalesContext from '../../hooks/useTokenSalesContext';
 import { PaymentMethod, CheckoutStep } from '../../types/checkout';
 
+const PaymentMethodSelector = lazy(() => import('./PaymentMethodSelector'));
 const SolanaPayWidget = lazy(() => import('./SolanaPayWidget'));
+const OnRampWidget = lazy(() => import('./OnRampWidget'));
+const PaymentSuccess = lazy(() => import('./PaymentSuccess'));
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   hotAmount: number;
   payAmount: number;
+  usdValue: number;
   currency: 'SOL' | 'USDC';
   bonusMultiplier: number;
 }
@@ -22,41 +26,30 @@ const CheckoutModal: React.FC<CheckoutModalProps> = (props) => {
     const [step, setStep] = useState<CheckoutStep>('select_method');
     const [method, setMethod] = useState<PaymentMethod>('wallet');
     const [errorMessage, setErrorMessage] = useState('');
+    const [transactionId, setTransactionId] = useState<string | undefined>();
 
     const totalToReceive = props.hotAmount * props.bonusMultiplier;
 
-    const handlePayment = async () => {
+    const handleWalletPayment = async () => {
         setStep('processing');
-        let result = null;
-        try {
-            switch (method) {
-                case 'wallet':
-                    result = await transactions.buyPresaleTokens(totalToReceive, props.currency);
-                    break;
-                case 'solana_pay':
-                    // Solana Pay simulation is handled inside the widget
-                    // Here we just wait for its completion state
-                    return; // Don't close modal yet
-                case 'card':
-                    result = await transactions.buyWithCard(totalToReceive);
-                    break;
-                default:
-                    throw new Error("Invalid payment method");
-            }
-
-            if (result) {
-                setStep('success');
-            } else {
-                throw new Error(transactions.error || "Transaction failed or was rejected.");
-            }
-        } catch (error: any) {
-            setErrorMessage(error.message);
+        const result = await transactions.buyPresaleTokens(totalToReceive, props.currency);
+        if (result) {
+            setTransactionId(result.id);
+            setStep('success');
+        } else {
+            setErrorMessage(transactions.error || "Transaction failed or was rejected.");
             setStep('error');
         }
     };
     
-    const handleSolanaPaySuccess = () => {
+    const handleSuccess = (txId?: string) => {
+        setTransactionId(txId);
         setStep('success');
+    };
+    
+    const handleFailure = (error: string) => {
+        setErrorMessage(error);
+        setStep('error');
     };
 
     const renderContent = () => {
@@ -64,49 +57,62 @@ const CheckoutModal: React.FC<CheckoutModalProps> = (props) => {
             case 'select_method':
                 return (
                     <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">You are purchasing</p>
-                        <p className="text-2xl font-bold my-2 text-brand-accent">{props.hotAmount.toLocaleString()} HOT</p>
-                        <p className="text-lg font-bold">Total to Receive: {totalToReceive.toLocaleString()} HOT</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">For a total of</p>
-                        <p className="font-bold text-lg flex items-center justify-center gap-2 mt-2">
-                            <AssetIcon asset={props.currency} /> {props.payAmount.toFixed(6)}
-                        </p>
-                        <div className="my-6">
-                            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 text-left mb-2">Select Payment Method</h3>
-                            <div className="space-y-2">
-                                 <button onClick={() => setMethod('wallet')} className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${method === 'wallet' ? 'border-brand-accent bg-brand-accent/10' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-brand-dark'}`}><i className="fa-solid fa-wallet mr-3 w-5 text-center"></i>Connected Wallet</button>
-                                 <button onClick={() => setMethod('solana_pay')} className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${method === 'solana_pay' ? 'border-brand-accent bg-brand-accent/10' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-brand-dark'}`}><i className="fa-solid fa-qrcode mr-3 w-5 text-center"></i>Solana Pay</button>
-                                 <button onClick={() => setMethod('card')} className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${method === 'card' ? 'border-brand-accent bg-brand-accent/10' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-brand-dark'}`}><i className="fa-solid fa-credit-card mr-3 w-5 text-center"></i>Pay with Card</button>
-                            </div>
+                        <div className="text-center mb-6 p-4 bg-gray-100 dark:bg-brand-dark-lighter rounded-lg">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">You will receive ~</p>
+                            <p className="text-3xl font-bold my-1 text-brand-accent-dark dark:text-brand-accent flex items-center justify-center gap-2">
+                                <AssetIcon asset="HOT" className="w-7 h-7" /> {totalToReceive.toLocaleString(undefined, {maximumFractionDigits: 0})} HOT
+                            </p>
+                            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                for {props.payAmount.toFixed(4)} {props.currency} (~${props.usdValue.toFixed(2)})
+                            </p>
                         </div>
-                        {method !== 'solana_pay' ? (
-                            <Button onClick={handlePayment} className="w-full bg-brand-accent text-brand-dark">Confirm Purchase</Button>
-                        ) : (
-                             <Suspense fallback={<div className="text-center p-4"><i className="fas fa-spinner fa-spin text-2xl"></i></div>}>
-                                <SolanaPayWidget 
-                                    amount={props.payAmount}
-                                    currency={props.currency}
-                                    hotAmount={totalToReceive}
-                                    onSuccess={handleSolanaPaySuccess}
-                                />
-                             </Suspense>
-                        )}
+                        
+                        <Suspense fallback={<div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />}>
+                           <PaymentMethodSelector selectedMethod={method} onSelectMethod={setMethod} />
+                        </Suspense>
+                        
+                        <div className="mt-6">
+                            {method === 'wallet' && (
+                                <Button onClick={handleWalletPayment} className="w-full bg-brand-accent text-brand-dark">Confirm with Wallet</Button>
+                            )}
+                            {method === 'solana_pay' && (
+                                <Suspense fallback={<div className="text-center p-4"><i className="fas fa-spinner fa-spin text-2xl"></i></div>}>
+                                    <SolanaPayWidget 
+                                        amount={props.payAmount}
+                                        currency={props.currency}
+                                        hotAmount={totalToReceive}
+                                        onSuccess={handleSuccess}
+                                    />
+                                </Suspense>
+                            )}
+                            {method === 'card' && (
+                                 <Suspense fallback={<div className="text-center p-4"><i className="fas fa-spinner fa-spin text-2xl"></i></div>}>
+                                    <OnRampWidget 
+                                        hotAmount={totalToReceive}
+                                        usdAmount={props.usdValue}
+                                        onSuccess={handleSuccess}
+                                        onFailure={handleFailure}
+                                    />
+                                 </Suspense>
+                            )}
+                        </div>
                     </div>
                 );
             case 'processing':
-                return <div className="text-center p-8"><i className="fas fa-spinner fa-spin text-4xl text-brand-accent"></i><p className="mt-4">Processing Transaction...</p></div>;
+                return <div className="text-center p-8 min-h-[300px] flex flex-col justify-center"><i className="fas fa-spinner fa-spin text-4xl text-brand-accent"></i><p className="mt-4">Processing Transaction...</p><p className="text-sm text-gray-500 mt-2">Please approve in your wallet if prompted.</p></div>;
             case 'success':
                  return (
-                    <div className="text-center p-8">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-4xl"><i className="fa-solid fa-check"></i></div>
-                        <h3 className="text-2xl font-bold">Success!</h3>
-                        <p className="text-gray-500 mt-2">Your purchase of {totalToReceive.toLocaleString()} HOT is complete.</p>
-                        <Button onClick={props.onClose} className="w-full mt-6 bg-brand-accent text-brand-dark">Done</Button>
-                    </div>
+                    <Suspense fallback={<div className="min-h-[300px]" />}>
+                        <PaymentSuccess 
+                            hotAmount={totalToReceive}
+                            onDone={props.onClose}
+                            transactionId={transactionId}
+                        />
+                    </Suspense>
                 );
             case 'error':
                  return (
-                    <div className="text-center p-8">
+                    <div className="text-center p-8 min-h-[300px] flex flex-col justify-center">
                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-4xl"><i className="fa-solid fa-times"></i></div>
                         <h3 className="text-2xl font-bold">Transaction Failed</h3>
                         <p className="text-gray-500 mt-2 bg-gray-100 dark:bg-brand-dark-lighter p-2 rounded-lg text-xs">{errorMessage}</p>
@@ -118,9 +124,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = (props) => {
     
     return (
         <Modal isOpen={props.isOpen} onClose={props.onClose} title="Confirm Purchase">
-            <div className="text-center">
-                {renderContent()}
-            </div>
+            {renderContent()}
         </Modal>
     );
 };

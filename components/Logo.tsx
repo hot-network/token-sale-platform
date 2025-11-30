@@ -11,7 +11,7 @@ const Logo: React.FC = () => {
       />
       <span className="font-serif text-xl tracking-wider text-gray-800 dark:text-white">
         <span className="font-bold text-brand-accent-dark dark:text-brand-accent">HOT</span>{" "}
-        <span className="font-light">NETWORK</span>
+        <span className="font-light">LAUNCHPAD</span>
       </span>
     </a>
   );

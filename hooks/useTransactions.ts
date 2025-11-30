@@ -1,14 +1,21 @@
+
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Transaction, TransactionStatus } from '../types/transactions';
-import { claimHotTokens, purchaseHotTokens } from '../lib/solana/presale';
+import { Transaction, TransactionStatus, Order } from '../types/transactions';
+import { buyHotTokens, claimHotTokens } from '../lib/solana/payments';
 import { executeJupiterSwap } from '../lib/solana/jupiter';
 import { User } from '../types/users';
 import { logger } from '../services/logger';
-import { SolanaNetwork } from '../types';
+import { BirdeyeMarketData, SaleStageConfig, SolanaNetwork } from '../types';
 import { localCacheGet, localCacheSet } from '../utils/cache';
+import useNetwork from './useNetwork';
+import { recordTransactionOnServer } from '../services/tokenSaleService';
 
 interface UseTransactionsProps {
     saleState: 'UPCOMING' | 'ACTIVE' | 'ENDED';
+    saleConfig: SaleStageConfig | null;
+    totalSold: number;
+    totalContributors: number;
+    marketStats: BirdeyeMarketData | null;
     prices: {
         presaleHotPrice: number;
         marketHotPrice: number;
@@ -25,56 +32,123 @@ interface UseTransactionsProps {
     refetchBalances: () => void;
 }
 
-const recordTransactionOnServer = async (txData: {
-    signature: string;
-    walletAddress: string;
-    hotAmount: number;
-    paidAmount: number;
-    currency: 'SOL' | 'USDC';
-    usdValue: number;
-}) => {
-    try {
-        const response = await fetch('/api/transactions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                signature: txData.signature,
-                walletAddress: txData.walletAddress,
-                hotAmount: txData.hotAmount,
-                paidAmount: txData.paidAmount,
-                paidCurrency: txData.currency,
-                usdValue: txData.usdValue,
-            })
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `Server failed to record transaction with status ${response.status}`);
-        }
-        logger.info('[useTransactions]', 'Successfully recorded transaction on server.');
-    } catch (error) {
-        logger.error('[useTransactions]', 'Failed to record transaction on server.', error);
-    }
-};
-
 const TRANSACTION_HISTORY_CACHE_KEY = 'transaction_history';
 
+// Mock Orderbook Data
+const generateMockOrders = (price: number, count: number, side: 'buy' | 'sell'): Order[] => {
+    const orders: Order[] = [];
+    let currentPrice = side === 'buy' ? price * 0.999 : price * 1.001;
+    for (let i = 0; i < count; i++) {
+        const amount = Math.random() * 500000 + 10000;
+        orders.push({
+            id: `ord_${side}_${i}_${Date.now()}`,
+            price: currentPrice,
+            amount,
+            side,
+            status: 'open',
+            timestamp: Date.now() - Math.random() * 100000,
+        });
+        currentPrice = side === 'buy' ? currentPrice * (1 - Math.random() * 0.0005) : currentPrice * (1 + Math.random() * 0.0005);
+    }
+    return orders;
+}
+
+
 export default function useTransactions(props: UseTransactionsProps) {
-    const { saleState, prices, user, wallets, network, onTransactionSuccess, onTransactionError, refetchBalances } = props;
+    const { saleState, saleConfig, totalSold, totalContributors, marketStats, prices, user, wallets, network, onTransactionSuccess, onTransactionError, refetchBalances } = props;
+    const { config: networkConfig } = useNetwork();
     
     const [status, setStatus] = useState<TransactionStatus>('idle');
     const [error, setError] = useState<string | null>(null);
-    const [history, setHistory] = useState<Transaction[]>(() => localCacheGet(TRANSACTION_HISTORY_CACHE_KEY) || []);
+    const [localHistory, setLocalHistory] = useState<Transaction[]>(() => localCacheGet(TRANSACTION_HISTORY_CACHE_KEY) || []);
+    const [serverHistory, setServerHistory] = useState<Transaction[]>([]);
 
     const [isAuditing, setIsAuditing] = useState(false);
     const [aiAuditResult, setAiAuditResult] = useState<string | null>(null);
     const [auditError, setAuditError] = useState<string | null>(null);
 
+    // --- New State for Orderbook ---
+    const [orderbook, setOrderbook] = useState<{ bids: Order[], asks: Order[] }>({ bids: [], asks: [] });
+    const [userOrders, setUserOrders] = useState<Order[]>([]);
+    const [isOrderbookLoading, setIsOrderbookLoading] = useState(true);
+
     useEffect(() => {
-        localCacheSet(TRANSACTION_HISTORY_CACHE_KEY, history);
-    }, [history]);
+        localCacheSet(TRANSACTION_HISTORY_CACHE_KEY, localHistory);
+    }, [localHistory]);
+    
+    useEffect(() => {
+        if (prices.marketHotPrice > 0) {
+             setIsOrderbookLoading(true);
+             setTimeout(() => {
+                setOrderbook({
+                    bids: generateMockOrders(prices.marketHotPrice, 15, 'buy'),
+                    asks: generateMockOrders(prices.marketHotPrice, 15, 'sell'),
+                });
+                setIsOrderbookLoading(false);
+             }, 1000);
+        }
+    }, [prices.marketHotPrice]);
+    
+    const placeLimitOrder = useCallback(async (side: 'buy' | 'sell', amount: number, price: number): Promise<Order | null> => {
+        setStatus('processing');
+        try {
+            const newOrder: Order = {
+                id: `pending_ord_${Date.now()}`,
+                price,
+                amount,
+                side,
+                status: 'open',
+                timestamp: Date.now(),
+            };
+            setUserOrders(prev => [newOrder, ...prev]);
+            
+            // Simulate network confirmation
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            onTransactionSuccess(amount * price);
+            setStatus('success');
+            return newOrder;
+
+        } catch (e: any) {
+            setError(e.message);
+            onTransactionError(e.message);
+            setStatus('error');
+            return null;
+        }
+    }, [onTransactionSuccess, onTransactionError]);
+
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            if (!user.address) {
+                setServerHistory([]);
+                return;
+            }
+            try {
+                const response = await fetch(`/api/transactions/history?walletAddress=${user.address}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setServerHistory(data);
+                }
+            } catch (err) {
+                logger.error('[useTransactions]', 'Failed to fetch transaction history', err);
+            }
+        };
+
+        fetchHistory();
+        const interval = setInterval(fetchHistory, 15000);
+
+        return () => clearInterval(interval);
+    }, [user.address]);
 
     const clearError = useCallback(() => setError(null), []);
-    const addTransactionToHistory = useCallback((transaction: Transaction) => setHistory(prev => [transaction, ...prev]), []);
+    const addTransactionToHistory = useCallback((transaction: Transaction) => setLocalHistory(prev => [transaction, ...prev]), []);
+
+    const history = useMemo(() => {
+        const combined = [...localHistory, ...serverHistory];
+        const unique = Array.from(new Map(combined.map(tx => [tx.id, tx])).values());
+        unique.sort((a, b) => b.timestamp - a.timestamp);
+        return unique.slice(0, 5);
+    }, [localHistory, serverHistory]);
 
     const executeGenericTransaction = useCallback(async <T extends any[], R>(
         txFunction: (...args: T) => Promise<{ success: boolean; error?: string; [key: string]: any }>,
@@ -114,7 +188,7 @@ export default function useTransactions(props: UseTransactionsProps) {
 
     const buyPresaleTokens = useCallback(async (hotAmount: number, currency: 'SOL' | 'USDC'): Promise<Transaction | null> => {
         const usdValue = hotAmount * prices.presaleHotPrice;
-        const cost = currency === 'SOL' ? (prices.solPrice > 0 ? usdValue / prices.solPrice : 0) : usdValue;
+        const paidAmount = currency === 'SOL' ? (prices.solPrice > 0 ? usdValue / prices.solPrice : 0) : usdValue;
         
         if (typeof navigator !== 'undefined' && !navigator.onLine) {
             onTransactionError("You are offline. Transaction has been queued.");
@@ -123,7 +197,7 @@ export default function useTransactions(props: UseTransactionsProps) {
                 timestamp: Date.now(),
                 hotAmount,
                 currency,
-                paidAmount: cost,
+                paidAmount,
                 usdValue,
                 type: 'presale_buy',
                 status: 'pending',
@@ -133,14 +207,14 @@ export default function useTransactions(props: UseTransactionsProps) {
         }
         
         return await executeGenericTransaction(
-            purchaseHotTokens,
-            async (res: { signature: string; paidAmount: number }): Promise<Transaction> => {
+            buyHotTokens,
+            async (res: { signature: string; }): Promise<Transaction> => {
                 const newTx: Transaction = {
                     id: res.signature,
                     timestamp: Date.now(),
                     hotAmount,
                     currency,
-                    paidAmount: res.paidAmount,
+                    paidAmount: paidAmount,
                     usdValue,
                     type: 'presale_buy',
                     status: 'confirmed',
@@ -148,12 +222,12 @@ export default function useTransactions(props: UseTransactionsProps) {
                 addTransactionToHistory(newTx);
                 onTransactionSuccess(usdValue);
 
-                if (network === 'mainnet') {
+                if (network === 'mainnet' && user.address) {
                     await recordTransactionOnServer({
                         signature: res.signature,
-                        walletAddress: user.address!,
+                        walletAddress: user.address,
                         hotAmount,
-                        paidAmount: res.paidAmount,
+                        paidAmount: paidAmount,
                         currency,
                         usdValue
                     });
@@ -161,14 +235,15 @@ export default function useTransactions(props: UseTransactionsProps) {
                 return newTx;
             },
             wallets.adapter,
+            network,
+            networkConfig.programId,
+            networkConfig.treasuryAddress,
+            paidAmount,
             currency,
-            hotAmount,
-            prices,
             user.solBalance,
-            user.usdcBalance,
-            network
+            user.usdcBalance
         );
-    }, [executeGenericTransaction, addTransactionToHistory, user.address, user.solBalance, user.usdcBalance, prices, wallets.adapter, onTransactionSuccess, network, onTransactionError]);
+    }, [executeGenericTransaction, addTransactionToHistory, user, prices, wallets.adapter, onTransactionSuccess, network, networkConfig.programId, networkConfig.treasuryAddress, onTransactionError]);
 
     const claimTokens = useCallback(async (): Promise<Transaction | null> => {
         if (saleState !== 'ENDED' || user.hotBalance <= 0) {
@@ -209,9 +284,9 @@ export default function useTransactions(props: UseTransactionsProps) {
                 onTransactionSuccess(user.hotBalance * prices.presaleHotPrice, true);
                 return newTx;
             },
-            wallets.adapter, user.hotBalance, network
+            wallets.adapter, network, networkConfig.programId, user.hotBalance
         );
-    }, [saleState, user.hotBalance, prices.presaleHotPrice, executeGenericTransaction, addTransactionToHistory, wallets.adapter, onTransactionSuccess, onTransactionError, network]);
+    }, [saleState, user.hotBalance, prices.presaleHotPrice, executeGenericTransaction, addTransactionToHistory, wallets.adapter, onTransactionSuccess, onTransactionError, network, networkConfig.programId]);
     
     const buyMarketTokens = useCallback(async (amount: number, currency: 'SOL' | 'USDC') => {
         const usdValue = amount * prices.marketHotPrice;
@@ -308,6 +383,16 @@ export default function useTransactions(props: UseTransactionsProps) {
             addTransactionToHistory(newTx);
             onTransactionSuccess(usdValue);
             setStatus('success');
+             if (user.address) {
+                await recordTransactionOnServer({
+                    signature: newTx.id,
+                    walletAddress: user.address,
+                    hotAmount,
+                    paidAmount: usdValue,
+                    currency: 'USDC',
+                    usdValue
+                });
+            }
             return newTx;
         } catch (err: any) {
             const errMsg = err.message || 'An unknown error occurred during card payment processing.';
@@ -316,7 +401,7 @@ export default function useTransactions(props: UseTransactionsProps) {
             setStatus('error');
             return null;
         }
-    }, [addTransactionToHistory, prices.presaleHotPrice, onTransactionSuccess, onTransactionError]);
+    }, [addTransactionToHistory, prices.presaleHotPrice, onTransactionSuccess, onTransactionError, user.address]);
 
     const buyWithSolanaPay = useCallback(async (hotAmount: number, currency: 'SOL' | 'USDC'): Promise<Transaction | null> => {
         const usdValue = hotAmount * prices.presaleHotPrice;
@@ -330,6 +415,16 @@ export default function useTransactions(props: UseTransactionsProps) {
             addTransactionToHistory(newTx);
             onTransactionSuccess(usdValue);
             setStatus('success');
+            if (user.address) {
+                 await recordTransactionOnServer({
+                    signature: newTx.id,
+                    walletAddress: user.address,
+                    hotAmount,
+                    paidAmount,
+                    currency,
+                    usdValue
+                });
+            }
             return newTx;
         } catch (err: any) {
             const errMsg = err.message || 'An unknown error occurred during Solana Pay processing.';
@@ -338,7 +433,7 @@ export default function useTransactions(props: UseTransactionsProps) {
             setStatus('error');
             return null;
         }
-    }, [addTransactionToHistory, prices.presaleHotPrice, prices.solPrice, onTransactionSuccess, onTransactionError]);
+    }, [addTransactionToHistory, prices.presaleHotPrice, prices.solPrice, onTransactionSuccess, onTransactionError, user.address]);
 
     const runAiAudit = useCallback(async () => {
         setIsAuditing(true);
@@ -348,7 +443,16 @@ export default function useTransactions(props: UseTransactionsProps) {
             const response = await fetch('/api/audit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ presaleHotPrice: prices.presaleHotPrice }),
+                body: JSON.stringify({
+                    sale: {
+                        state: saleState,
+                        stage: saleConfig,
+                        totalSold,
+                        totalContributors,
+                    },
+                    prices,
+                    marketStats,
+                }),
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "API request failed.");
@@ -360,10 +464,11 @@ export default function useTransactions(props: UseTransactionsProps) {
         } finally {
             setIsAuditing(false);
         }
-    }, [prices.presaleHotPrice]);
+    }, [prices, saleState, saleConfig, totalSold, totalContributors, marketStats]);
 
     return useMemo(() => ({
         status, error, history, isAuditing, aiAuditResult, auditError,
+        orderbook, userOrders, isOrderbookLoading, placeLimitOrder,
         buyPresaleTokens, claimTokens, runAiAudit,
         buyMarketTokens, sellMarketTokens,
         clearError,
@@ -371,6 +476,7 @@ export default function useTransactions(props: UseTransactionsProps) {
         buyWithSolanaPay,
     }), [
         status, error, history, isAuditing, aiAuditResult, auditError,
+        orderbook, userOrders, isOrderbookLoading, placeLimitOrder,
         buyPresaleTokens, claimTokens, runAiAudit, buyMarketTokens, sellMarketTokens, clearError,
         buyWithCard, buyWithSolanaPay,
     ]);

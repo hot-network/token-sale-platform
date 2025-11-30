@@ -1,11 +1,6 @@
-# HOT Token Sale Launchpad 
-**vite version**
+# HOT Token Sale Launchpad
 
-A next-generation token sale launchpad for the HOT token on Solana. Features real-time price data, wallet balance tracking, secure on-chain purchasing, and a seamless presale experience optimized for speed and reliability.
-
-## About
-
-This is a mainnet-ready token sale launchpad for the solana tokens, built as a modern, client-side web application using React and TypeScript. It features a real-time, interactive interface for token sales, complete with wallet integration simulation and AI-powered analysis, all backed by a serverless Neon database.
+This is a mainnet-ready presale launchpad for the HOT token, built as a modern, client-side web application using React and TypeScript. It features a real-time, interactive interface for token sales, complete with wallet integration simulation and AI-powered analysis, all backed by a serverless Neon database.
 
 ## Tech Stack
 
@@ -64,7 +59,7 @@ This application uses a hybrid architecture that combines the security of direct
 
 ### Prerequisites
 
--   Node.js (v18 or later)
+-   Node.js (v22 or later)
 -   A code editor (e.g., VS Code)
 -   A Neon DB account and a project connection string.
 
@@ -72,8 +67,8 @@ This application uses a hybrid architecture that combines the security of direct
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/hot-network/token-sale-platform
-    cd hot-token-platform
+    git clone <repository-url>
+    cd hot-token-launchpad
     ```
 
 2.  **Install dependencies:**
@@ -86,16 +81,6 @@ This application uses a hybrid architecture that combines the security of direct
     ```
     # .env
     DATABASE_URL="your_neon_db_connection_string"
-    NEXT_PUBLIC_SOLANA_NETWORK=mainnet-beta
-    NEXT_PUBLIC_SOLANA_MAINNET_URL=https://api.mainnet-beta.solana.com
-    NEXT_PUBLIC_SOLANA_DEVNET_URL=https://api.devnet.solana.com
-    NEXT_PUBLIC_SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=your-helius-api-key
-    NEXT_PUBLIC_HOT_TOKEN_MINT=EbDPyHifxX45CS6PA9msSM7utJa1DiHsDWp5zP6htf11
-    NEXT_PUBLIC_REWARDS_POOL=
-    NEXT_PUBLIC_PYTH_SOL_PRICE_FEED=H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG
-    NEXT_PUBLIC_PYTH_HOT_PRICE_FEED=EbDPyHifxX45CS6PA9msSM7utJa1DiHsDWp5zP6htf11 (TBA)
-    NEXT_PUBLIC_PYTH_USDC_PRICE_FEED=Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD
-    NEXT_PUBLIC_JUPITER_API_URL=https://quote-api.jup.ag/v6
     API_KEY="your_google_gemini_api_key"
     ```
     

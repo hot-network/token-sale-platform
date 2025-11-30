@@ -8,7 +8,7 @@ interface SolanaPayWidgetProps {
     amount: number;
     currency: 'SOL' | 'USDC';
     hotAmount: number;
-    onSuccess: () => void;
+    onSuccess: (transactionId: string) => void;
 }
 
 const SolanaPayWidget: React.FC<SolanaPayWidgetProps> = (props) => {
@@ -38,8 +38,10 @@ const SolanaPayWidget: React.FC<SolanaPayWidgetProps> = (props) => {
                     
                     // Simulate a successful finding
                     console.log(`[SolanaPay] Found payment for reference: ${reference}. Simulating success.`);
-                    await transactions.buyWithSolanaPay(props.hotAmount, props.currency);
-                    props.onSuccess();
+                    const newTx = await transactions.buyWithSolanaPay(props.hotAmount, props.currency);
+                    if (newTx) {
+                        props.onSuccess(newTx.id);
+                    }
                     // The component will unmount upon success, triggering the cleanup function.
 
                 } catch (error) {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -33,14 +32,20 @@ if (document.readyState === 'loading') {
 }
 
 // Register the service worker for PWA functionality
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        logger.info('[ServiceWorker]', 'Registration successful, scope is:', registration.scope);
-      })
-      .catch(err => {
-        logger.error('[ServiceWorker]', 'Registration failed:', err);
+const registerServiceWorker = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
       });
-  });
-}
+      logger.info('[ServiceWorker]', 'Registration successful, scope is:', registration.scope);
+    } catch (err) {
+      logger.error('[ServiceWorker]', 'Registration failed:', err);
+    }
+  }
+};
+
+// We register the SW on window load to not delay rendering the app.
+window.addEventListener('load', () => {
+  registerServiceWorker();
+});

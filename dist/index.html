@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>HOT | Token Sale Platform on Solana</title>
-    <meta name="description" content="A next‑generation token sale launchpad for the HOT token on Solana, offering real‑time price data, wallet balance tracking, secure on‑chain purchasing, and a seamless presale experience optimized for speed and reliability." />
-    <link rel="canonical" href="https://tokensale.hotnetwork.fun" />
-
+    
+    <title>HOT Network - Premium Content Platform on Solana</title>
+    <meta name="description" content="A next-generation token sale launchpad for the HOT token on Solana. Features real-time price data, wallet balance tracking, secure on-chain purchasing, and a seamless presale experience optimized for speed and reliability." />
+    <link rel="canonical" href="https://hotnetwork.fun" />
+    
     <!-- Security Headers -->
     <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://aistudiocdn.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
-        font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-        img-src 'self' data: https://api.qrserver.com;
+        default-src 'self'; 
+        script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://aistudiocdn.com; 
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; 
+        font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; 
+        img-src 'self' data: https://api.qrserver.com; 
         connect-src 'self' https://*.solana.com https://hermes.pyth.network https://api.coingecko.com https://public-api.birdeye.so https://generativelanguage.googleapis.com;
         object-src 'none';
         base-uri 'self';
@@ -25,18 +25,18 @@
 
     <!-- PWA & Favicons -->
     <link rel="icon" href="/assets/logo.png" type="image/png" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#D0BFB4">
 
     <!-- Social Media / Open Graph -->
-    <meta property="og:title" content="HOT NETWORK – Token Sale Launchpad on Solana" />
-    <meta property="og:description" content="A high‑performance creator platform and token sale launchpad powered by Solana. Access real‑time prices, track balances, and join the HOT presale with a fast and secure interface." />
+    <meta property="og:title" content="HOT Network - Premium Content Platform on Solana" />
+    <meta property="og:description" content="A high-performance creator platform and token sale launchpad built on Solana. Access live market data, track your HOT balance, and join the presale through a fast, secure, and intuitive interface." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://hotnetwork.fun" />
     <meta property="og:image" content="https://hotnetwork.fun/assets/og-image.png" />
-
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="HOT NETWORK – Premium Content Platform on Solana" />
-    <meta name="twitter:description" content="Join the HOT token presale on a fast, secure Solana launchpad featuring real‑time price feeds, wallet insights, and a clean UX designed for creators and investors." />
+    <meta name="twitter:title" content="HOT Network - Premium Content Platform on Solana" />
+    <meta name="twitter:description" content="Join the HOT token presale on a fast, secure Solana-powered launchpad. Real-time price feeds, wallet insights, and a clean UX designed for creators and investors." />
     <meta name="twitter:image" content="https://hotnetwork.fun/assets/og-image.png" />
 
     <!-- High-priority theme script to prevent FOUC -->
@@ -45,78 +45,123 @@
         try {
           var theme = localStorage.getItem('theme');
           if (theme) {
-            if (theme === 'dark') document.documentElement.classList.add('dark');
+            if (theme === 'dark') {
+              document.documentElement.classList.add('dark');
+            }
           } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
           }
-        } catch (e) { console.error('Could not set theme from inline script', e); }
+        } catch (e) {
+          console.error('Could not set theme from inline script', e);
+        }
       })();
     </script>
-
+    
     <!-- Preconnect & Preload for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <script type="importmap">
-    {
-      "imports": {
-        "@google/genai": "https://aistudiocdn.com/@google/genai@^0.20.0",
-        "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
-        "react": "https://aistudiocdn.com/react@^19.2.0",
-        "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
-        "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
-        "react/": "https://aistudiocdn.com/react@^19.2.0/",
-        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
-      }
-    }
-    </script>
-    <link rel="modulepreload" href="data:application/octet-stream;base64,aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IFJlYWN0RE9NIGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnOwppbXBvcnQgQXBwIGZyb20gJy4vQXBwJzsKaW1wb3J0IHsgVG9rZW5TYWxlUHJvdmlkZXIgfSBmcm9tICcuL2NvbnRleHRzL1Rva2VuU2FsZUNvbnRleHQnOwppbXBvcnQgeyBOZXR3b3JrUHJvdmlkZXIgfSBmcm9tICcuL2NvbnRleHRzL05ldHdvcmtDb250ZXh0JzsKaW1wb3J0IHsgbG9nZ2VyIH0gZnJvbSAnLi9zZXJ2aWNlcy9sb2dnZXInOwoKY29uc3Qgc3RhcnRBcHAgPSAoKSA9PiB7CiAgY29uc3Qgcm9vdEVsZW1lbnQgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncm9vdCcpOwogIGlmICghcm9vdEVsZW1lbnQpIHsKICAgIHRocm93IG5ldyBFcnJvcigiQ291bGQgbm90IGZpbmQgcm9vdCBlbGVtZW50IHRvIG1vdW50IHRvIik7CiAgfQogIAogIGNvbnN0IHJvb3QgPSBSZWFjdERPTS5jcmVhdGVSb290KHJvb3RFbGVtZW50KTsKICByb290LnJlbmRlcigKICAgIDxSZWFjdC5TdHJpY3RNb2RlPgogICAgICA8TmV0d29ya1Byb3ZpZGVyPgogICAgICAgIDxUb2tlblNhbGVQcm92aWRlcj4KICAgICAgICAgIDxBcHAgLz4KICAgICAgICA8L1Rva2VuU2FsZVByb3ZpZGVyPgogICAgICA8L05ldHdvcmtQcm92aWRlcj4KICAgIDwvUmVhY3QuU3RyaWN0TW9kZT4KICApOwp9OwoKLy8gRGVmZXIgdGhlIGV4ZWN1dGlvbiBvZiB0aGUgYXBwIHVudGlsIHRoZSBET00gaXMgZnVsbHkgbG9hZGVkLgovLyBUaGlzIHByZXZlbnRzIHJhY2UgY29uZGl0aW9ucyB3aGVyZSB0aGUgc2NyaXB0IHJ1bnMgYmVmb3JlIHRoZSAjcm9vdCBlbGVtZW50IGV4aXN0cy4KaWYgKGRvY3VtZW50LnJlYWR5U3RhdGUgPT09ICdsb2FkaW5nJykgewogICAgZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIHN0YXJ0QXBwKTsKfSBlbHNlIHsKICAgIHN0YXJ0QXBwKCk7Cn0KCi8vIFJlZ2lzdGVyIHRoZSBzZXJ2aWNlIHdvcmtlciBmb3IgUFdBIGZ1bmN0aW9uYWxpdHkKaWYgKCdzZXJ2aWNlV29ya2VyJyBpbiBuYXZpZ2F0b3IpIHsKICB3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcignbG9hZCcsICgpID0+IHsKICAgIG5hdmlnYXRvci5zZXJ2aWNlV29ya2VyLnJlZ2lzdGVyKCcvc3cuanMnKQogICAgICAudGhlbihyZWdpc3RyYXRpb24gPT4gewogICAgICAgIGxvZ2dlci5pbmZvKCdbU2VydmljZVdvcmtlcl0nLCAnUmVnaXN0cmF0aW9uIHN1Y2Nlc3NmdWwsIHNjb3BlIGlzOicsIHJlZ2lzdHJhdGlvbi5zY29wZSk7CiAgICAgIH0pCiAgICAgIC5jYXRjaChlcnIgPT4gewogICAgICAgIGxvZ2dlci5lcnJvcignW1NlcnZpY2VXb3JrZXJdJywgJ1JlZ2lzdHJhdGlvbiBmYWlsZWQ6JywgZXJyKTsKICAgICAgfSk7CiAgfSk7Cn0=">
-
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Tailwind -->
+{
+  "imports": {
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "@neondatabase/serverless": "https://aistudiocdn.com/@neondatabase/serverless@^1.0.2",
+    "@vercel/edge-config": "https://aistudiocdn.com/@vercel/edge-config@^1.4.3"
+  }
+}
+</script>
+    <link rel="modulepreload" href="data:application/octet-stream;base64,aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IFJlYWN0RE9NIGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnOwppbXBvcnQgQXBwIGZyb20gJy4vQXBwJzsKaW1wb3J0IHsgVG9rZW5TYWxlUHJvdmlkZXIgfSBmcm9tICcuL2NvbnRleHRzL1Rva2VuU2FsZUNvbnRleHQnOwppbXBvcnQgeyBOZXR3b3JrUHJvdmlkZXIgfSBmcm9tICcuL2NvbnRleHRzL05ldHdvcmtDb250ZXh0JzsKaW1wb3J0IHsgbG9nZ2VyIH0gZnJvbSAnLi9zZXJ2aWNlcy9sb2dnZXInOwoKY29uc3Qgc3RhcnRBcHAgPSAoKSA9PiB7CiAgY29uc3Qgcm9vdEVsZW1lbnQgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncm9vdCcpOwogIGlmICghcm9vdEVsZW1lbnQpIHsKICAgIHRocm93IG5ldyBFcnJvcigiQ291bGQgbm90IGZpbmQgcm9vdCBlbGVtZW50IHRvIG1vdW50IHRvIik7CiAgfQogIAogIGNvbnN0IHJvb3QgPSBSZWFjdERPTS5jcmVhdGVSb290KHJvb3RFbGVtZW50KTsKICByb290LnJlbmRlcigKICAgIDxSZWFjdC5TdHJpY3RNb2RlPgogICAgICA8TmV0d29ya1Byb3ZpZGVyPgogICAgICAgIDxUb2tlblNhbGVQcm92aWRlcj4KICAgICAgICAgIDxBcHAgLz4KICAgICAgICA8L1Rva2VuU2FsZVByb3ZpZGVyPgogICAgICA8L05ldHdvcmtQcm92aWRlcj4KICAgIDwvUmVhY3QuU3RyaWN0TW9kZT4KICApOwp9OwoKLy8gRGVmZXIgdGhlIGV4ZWN1dGlvbiBvZiB0aGUgYXBwIHVudGlsIHRoZSBET00gaXMgZnVsbHkgbG9hZGVkLgovLyBUaGlzIHByZXZlbnRzIHJhY2UgY29uZGl0aW9ucyB3aGVyZSB0aGUgc2NyaXB0IHJ1bnMgYmVmb3JlIHRoZSAjcm9vdCBlbGVtZW50IGV4aXN0cy4KaWYgKGRvY3VtZW50LnJlYWR5U3RhdGUgPT09ICdsb2FkaW5nJykgewogICAgZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIHN0YXJ0QXBwKTsKfSBlbHNlIHsKICAgIHN0YXJ0QXBwKCk7Cn0KCi8vIFJlZ2lzdGVyIHRoZSBzZXJ2aWNlIHdvcmtlciBmb3IgUFdBIGZ1bmN0aW9uYWxpdHkKY29uc3QgcmVnaXN0ZXJTZXJ2aWNlV29ya2VyID0gYXN5bmMgKCkgPT4gewogIGlmICgnc2VydmljZVdvcmtlcicgaW4gbmF2aWdhdG9yKSB7CiAgICB0cnkgewogICAgICBjb25zdCByZWdpc3RyYXRpb24gPSBhd2FpdCBuYXZpZ2F0b3Iuc2VydmljZVdvcmtlci5yZWdpc3RlcignL3N3LmpzJywgewogICAgICAgIHNjb3BlOiAnLycsCiAgICAgIH0pOwogICAgICBsb2dnZXIuaW5mbygnW1NlcnZpY2VXb3JrZXJdJywgJ1JlZ2lzdHJhdGlvbiBzdWNjZXNzZnVsLCBzY29wZSBpczonLCByZWdpc3RyYXRpb24uc2NvcGUpOwogICAgfSBjYXRjaCAoZXJyKSB7CiAgICAgIGxvZ2dlci5lcnJvcignW1NlcnZpY2VXb3JrZXJdJywgJ1JlZ2lzdHJhdGlvbiBmYWlsZWQ6JywgZXJyKTsKICAgIH0KICB9Cn07CgovLyBXZSByZWdpc3RlciB0aGUgU1cgb24gd2luZG93IGxvYWQgdG8gbm90IGRlbGF5IHJlbmRlcmluZyB0aGUgYXBwLgp3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcignbG9hZCcsICgpID0+IHsKICByZWdpc3RlclNlcnZpY2VXb3JrZXIoKTsKfSk7">
+    
+    <!-- Stylesheets -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Scripts -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Import Map -->
-
-
-    <!-- Tailwind Config -->
     <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Raleway', 'sans-serif'],
-              serif: ['Merriweather', 'serif'],
-            },
-            colors: {
-              'brand-accent': '#D0BFB4',
-              'brand-dark': {
-                DEFAULT: '#000000',
-                light: '#111111',
-                lighter: '#2a2a2a'
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              fontFamily: {
+                sans: ['Raleway', 'sans-serif'],
+                serif: ['Merriweather', 'serif'],
               },
-              'brand-light': {
-                DEFAULT: '#FFFFFF',
-                dark: '#E5E5E5'
+              colors: {
+                'brand-accent': {
+                  'DEFAULT': '#E0C9A6',
+                  'light': '#F2E8D9',
+                  'dark': '#B3A184',
+                },
+                'brand-secondary': { 
+                  'DEFAULT': '#E0C9A6',
+                  'light': '#F2E8D9',
+                  'dark': '#B3A184',
+                },
+                'brand-dark': {
+                  'DEFAULT': '#000000',
+                  'light': '#111111',
+                  'lighter': '#1F1F1F'
+                },
+                'brand-light': {
+                  'DEFAULT': '#FFFFFF',
+                  'dark': '#F0F0F0'
+                },
+                'brand-background': {
+                    'light': '#F8F8F8',
+                    'dark': '#0A0A0A',
+                }
               },
-              'brand-background': { light: '#F7FAFC' }
-            },
-            boxShadow: {
-              md: '0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
-              lg: '0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-              xl: '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
+              boxShadow: {
+                'md': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
+                'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+              },
+              keyframes: {
+                fadeIn: {
+                  '0%': { opacity: '0' },
+                  '100%': { opacity: '1' },
+                },
+                blob: {
+                    '0%': {
+                        transform: 'translate(0px, 0px) scale(1)',
+                    },
+                    '33%': {
+                        transform: 'translate(30px, -50px) scale(1.1)',
+                    },
+                    '66%': {
+                        transform: 'translate(-20px, 20px) scale(0.9)',
+                    },
+                    '100%': {
+                        transform: 'translate(0px, 0px) scale(1)',
+                    },
+                },
+                kenBurns: {
+                    '0%': { transform: 'scale(1)' },
+                    '100%': { transform: 'scale(1.05)' },
+                },
+              },
+              animation: {
+                fadeIn: 'fadeIn 0.5s ease-in-out',
+                blob: 'blob 8s infinite ease-in-out',
+                kenBurns: 'kenBurns 40s ease-in-out infinite alternate',
+              },
+               backgroundImage: {
+                'hero-woman-bg': "url('/assets/hero-woman-bg.png')",
+              },
             }
           }
         }
-      }
     </script>
-    <script type="module" crossorigin src="/assets/index-DmRFr9OQ.js"></script>
+    <script type="module" crossorigin src="/assets/index-CkY8YmDo.js"></script>
   </head>
-
   <body class="bg-brand-background-light dark:bg-brand-dark">
     <div id="root"></div>
   </body>

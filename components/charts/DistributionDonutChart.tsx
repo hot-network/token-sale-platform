@@ -23,7 +23,7 @@ const DistributionDonutChart: React.FC = () => {
                     labelLine={false}
                     innerRadius={50}
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill="#d8c684ff"
                     paddingAngle={3}
                     dataKey="value"
                     nameKey="name"

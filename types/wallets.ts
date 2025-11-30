@@ -1,5 +1,5 @@
 
-export type WalletProvider = 'phantom' | 'solflare' | 'sollet' | 'embedded' | 'backpack' | 'ledger' | 'base' | null;
+export type WalletProvider = 'phantom' | 'solflare' | 'sollet' | 'embedded' | 'backpack' | 'ledger' | null;
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
 // A mock adapter interface to represent different wallet connection objects

@@ -20,16 +20,22 @@ export function useWalletBalances({ address, networkConfig, pollInterval = 12000
             setIsLoading(false);
             return;
         }
+        setIsLoading(true);
         try {
+            // This structure mimics a more standard balance fetching pattern.
             const { cluster, rpcUrl, usdcTokenMint, hotTokenMint } = networkConfig;
+            
+            // 1. Fetch native SOL balance and SPL token balances concurrently.
             const [sol, usdc, hot] = await Promise.all([
                 getSolBalance(address, cluster, rpcUrl),
                 getSplTokenBalance(address, usdcTokenMint, cluster, rpcUrl),
                 getSplTokenBalance(address, hotTokenMint, cluster, rpcUrl),
             ]);
+
             setSolBalance(sol);
             setUsdcBalance(usdc);
             setHotBalance(hot);
+
         } catch (error) {
             logger.error('[useWalletBalances]', 'Failed to fetch balances', error);
         } finally {
@@ -39,9 +45,7 @@ export function useWalletBalances({ address, networkConfig, pollInterval = 12000
 
     useEffect(() => {
         if (address) {
-            setIsLoading(true);
             fetchBalances();
-
             const intervalId = setInterval(fetchBalances, pollInterval);
             return () => clearInterval(intervalId);
         } else {

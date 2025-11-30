@@ -19,14 +19,19 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, currentTheme }) => {
   const { network, setNetwork, config: networkConfig } = useNetwork();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   const handleConnectClick = () => {
-    if (wallets.isConnected && wallets.adapter) {
-        wallets.disconnect();
-    } else {
-        openWalletModal();
-    }
+    openWalletModal();
   }
+
+  const handleCopyAddress = () => {
+    if (user.address) {
+        navigator.clipboard.writeText(user.address);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    }
+  };
   
   useEffect(() => {
     const handleScroll = () => {
@@ -35,8 +40,6 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, currentTheme }) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const truncateAddress = (address: string) => `${address.slice(0, 4)}...${address.slice(-4)}`;
 
   const navLinks = (
     <>
@@ -83,13 +86,22 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, currentTheme }) => {
                         Launch App
                     </Button>
                 </a>
-                <Button 
-                    onClick={handleConnectClick} 
-                    variant={wallets.isConnected ? 'connected' : 'secondary'}
-                    className="py-2.5 text-sm"
-                >
-                    {wallets.isConnecting ? 'Connecting...' : wallets.isConnected && user.address ? truncateAddress(user.address) : 'Connect'}
-                </Button>
+                {wallets.isConnected && user.address ? (
+                     <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-lg pl-3 pr-1.5 py-1.5 h-[42px]">
+                        <span className="font-mono text-xs text-green-400">{user.address}</span>
+                        <button onClick={handleCopyAddress} className="w-7 h-7 flex-shrink-0 rounded-md hover:bg-green-500/20 text-green-400 transition-colors" aria-label="Copy address">
+                            <i className={`fas ${copied ? 'fa-check' : 'fa-copy'}`}></i>
+                        </button>
+                    </div>
+                ) : (
+                    <Button 
+                        onClick={handleConnectClick} 
+                        variant='secondary'
+                        className="py-2.5 text-sm"
+                    >
+                        {wallets.isConnecting ? 'Connecting...' : 'Connect'}
+                    </Button>
+                )}
              </div>
              <button 
                 onClick={toggleTheme} 
@@ -133,13 +145,22 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, currentTheme }) => {
                            Launch App
                         </Button>
                     </a>
-                    <Button 
-                        onClick={handleConnectClick} 
-                        variant={wallets.isConnected ? 'connected' : 'secondary'}
-                        className="w-full text-sm"
-                    >
-                        {wallets.isConnecting ? 'Connecting...' : wallets.isConnected && user.address ? truncateAddress(user.address) : 'Connect Wallet'}
-                    </Button>
+                    {wallets.isConnected && user.address ? (
+                        <div className="flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 w-full">
+                            <span className="font-mono text-xs text-green-400 truncate">{user.address}</span>
+                            <button onClick={handleCopyAddress} className="w-7 h-7 flex-shrink-0 rounded-md hover:bg-green-500/20 text-green-400 transition-colors" aria-label="Copy address">
+                                <i className={`fas ${copied ? 'fa-check' : 'fa-copy'}`}></i>
+                            </button>
+                        </div>
+                    ) : (
+                        <Button 
+                            onClick={handleConnectClick} 
+                            variant={'secondary'}
+                            className="w-full text-sm"
+                        >
+                            {wallets.isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                        </Button>
+                    )}
                      <div className="flex justify-center pt-2">
                         <NetworkBadge />
                     </div>

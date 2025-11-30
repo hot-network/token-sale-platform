@@ -3,26 +3,52 @@ import React from 'react';
 import useNetwork from '../hooks/useNetwork';
 import { useLiquidityPoolsData } from '../hooks/use-liquidity-pools-data';
 import { LiquidityPool } from '../types/pools';
+import useTokenSalesContext from '../hooks/useTokenSalesContext';
+import AssetIcon from './AssetIcons';
 
 const PoolRow: React.FC<{ pool: LiquidityPool }> = ({ pool }) => {
+    const { prices } = useTokenSalesContext();
     const formatCurrency = (value: number) => `$${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+    
+    // Calculate vault composition
+    const halfTvl = pool.tvlUSD / 2;
+    const hotAmount = prices.marketHotPrice > 0 ? halfTvl / prices.marketHotPrice : 0;
+    const quoteAmount = pool.pair.quote === 'SOL' 
+        ? (prices.solPrice > 0 ? halfTvl / prices.solPrice : 0)
+        : halfTvl; // For USDC, value is 1:1 with USD
+
     return (
-        <div className="grid grid-cols-5 items-center gap-4 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-brand-dark-lighter/50 transition-colors">
-            <div className="col-span-2 flex items-center gap-3">
-                <img src={pool.dex.logoUrl} alt={pool.dex.name} className="w-8 h-8 rounded-full" />
-                <div>
-                    <p className="font-bold">{pool.pair.base}/{pool.pair.quote}</p>
-                    <p className="text-xs text-gray-500">{pool.dex.name}</p>
+        <div className="flex flex-col p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-brand-dark-lighter/50 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+            <div className="grid grid-cols-5 items-center gap-4">
+                <div className="col-span-2 flex items-center gap-3">
+                    <img src={pool.dex.logoUrl} alt={pool.dex.name} className="w-8 h-8 rounded-full" />
+                    <div>
+                        <p className="font-bold">{pool.pair.base}/{pool.pair.quote}</p>
+                        <p className="text-xs text-gray-500">{pool.dex.name}</p>
+                    </div>
+                </div>
+                <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(pool.tvlUSD)}</p>
+                </div>
+                <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(pool.volume24hUSD)}</p>
+                </div>
+                <div className="text-right">
+                    <p className="font-semibold text-green-500">{pool.apy.toFixed(2)}%</p>
                 </div>
             </div>
-            <div className="text-right">
-                <p className="font-semibold">{formatCurrency(pool.tvlUSD)}</p>
-            </div>
-            <div className="text-right">
-                <p className="font-semibold">{formatCurrency(pool.volume24hUSD)}</p>
-            </div>
-            <div className="text-right">
-                <p className="font-semibold text-green-500">{pool.apy.toFixed(2)}%</p>
+             <div className="mt-2 pt-2 border-t border-dashed border-gray-300 dark:border-gray-600 text-xs text-gray-500 dark:text-gray-400">
+                <p className="font-semibold mb-1">Pool Vaults:</p>
+                <div className="flex justify-around">
+                    <div className="flex items-center gap-2">
+                        <AssetIcon asset="HOT" className="w-4 h-4" />
+                        <span>{hotAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} HOT</span>
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <AssetIcon asset={pool.pair.quote as 'SOL' | 'USDC'} className="w-4 h-4" />
+                        <span>{quoteAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} {pool.pair.quote}</span>
+                    </div>
+                </div>
             </div>
         </div>
     );

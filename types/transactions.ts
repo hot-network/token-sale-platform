@@ -1,3 +1,4 @@
+
 export type TransactionStatus = 'idle' | 'processing' | 'success' | 'error';
 export type OnChainTransactionStatus = 'confirmed' | 'pending' | 'failed';
 
@@ -20,4 +21,14 @@ export interface Payment {
     signature?: string;
     status: VerificationStatus;
     solanaPayUrl?: string;
+}
+
+// New type for the order book
+export interface Order {
+    id: string;
+    price: number;
+    amount: number;
+    side: 'buy' | 'sell';
+    status: 'open' | 'partially_filled' | 'filled' | 'canceled';
+    timestamp: number;
 }

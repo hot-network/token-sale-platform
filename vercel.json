@@ -1,3 +1,4 @@
+
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
@@ -19,6 +20,9 @@
       "runtime": "nodejs20.x"
     },
     "api/transactions/route.ts": {
+      "runtime": "nodejs20.x"
+    },
+    "api/transactions/history/route.ts": {
       "runtime": "nodejs20.x"
     },
     "api/rpc/route.ts": {

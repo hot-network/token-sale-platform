@@ -1,13 +1,133 @@
 openapi: 3.0.0
 info:
-  title: HOT NETWORK Launchpad API
-  description: API for the HOT Token Sale Launchpad, handling affiliate rewards and other backend services.
+  title: HOT Network API
+  description: API for the HOT Token Sale Launchpad, handling sale status, transactions, user data, and other backend services.
   version: 1.0.0
 servers:
-  - url: https://api.launchpad.hotnetwork.fun
-    description: Production Server
+  - url: /
+    description: Local Development Server
+
+tags:
+  - name: Sale Status
+    description: Endpoints for retrieving the current state of the token sale.
+  - name: Transactions
+    description: Endpoints for recording and retrieving transaction history.
+  - name: User Data
+    description: Endpoints for fetching user-specific sale data.
+  - name: Faucet
+    description: Endpoints for the devnet token faucet.
+  - name: Affiliate
+    description: Endpoints related to the affiliate and rewards program.
+  - name: AI Services
+    description: Endpoints for AI-powered analysis.
+  - name: Subscriptions
+    description: Endpoints for the email newsletter.
+  - name: RPC
+    description: Solana JSON-RPC proxy.
 
 paths:
+  /api/status:
+    get:
+      summary: Get current sale status
+      description: Retrieves the current state of the token sale, including sale phase, contribution totals, and configuration.
+      tags:
+        - Sale Status
+      parameters:
+        - name: network
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [mainnet, devnet, localnet]
+          description: The network to query the status for.
+      responses:
+        '200':
+          description: Successful response with sale status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleStatusResponse'
+
+  /api/transactions:
+    post:
+      summary: Record a new transaction
+      description: Records a user's presale purchase transaction in the database. This is typically called after a successful on-chain transaction simulation.
+      tags:
+        - Transactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTransaction'
+      responses:
+        '200':
+          description: Transaction recorded successfully.
+        '400':
+          description: Bad Request, missing required fields.
+        '409':
+          description: Conflict, the transaction signature has already been recorded.
+        '500':
+          description: Internal Server Error.
+
+  /api/transactions/history:
+    get:
+      summary: Get user transaction history
+      description: Retrieves the last 5 transactions for a specific wallet address from the database.
+      tags:
+        - Transactions
+      parameters:
+        - name: walletAddress
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The user's Solana wallet address.
+      responses:
+        '200':
+          description: A list of the user's recent transactions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+
+  /api/user-state:
+    get:
+      summary: Get user sale data
+      description: Retrieves a user's total contribution amount and claim status for the presale.
+      tags:
+        - User Data
+      parameters:
+        - name: address
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The user's Solana wallet address.
+        - name: network
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [mainnet]
+          description: The network (currently mainnet only).
+      responses:
+        '200':
+          description: The user's sale-specific data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalContribution:
+                    type: number
+                    example: 150.75
+                  hasClaimed:
+                    type: boolean
+                    example: false
+  
   /api/faucet:
     post:
       summary: Request devnet tokens
@@ -39,17 +159,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: '10,000 HOT and 0.1 SOL have been sent to your wallet!'
-                  txSignature:
-                    type: string
-                    example: 'sim_faucet_tx_1678886400000'
+                $ref: '#/components/schemas/FaucetResponse'
         '400':
           description: Bad Request, such as requesting on mainnet or providing invalid input.
         '429':
@@ -61,8 +171,6 @@ paths:
       description: Allows an authenticated user to claim their 1000 HOT bonus for social sharing. The server verifies the user's X (Twitter) account for authenticity (e.g., follower count, age, activity) and ensures the bonus has not already been claimed.
       tags:
         - Affiliate
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -84,46 +192,138 @@ paths:
       responses:
         '200':
           description: Bonus successfully claimed.
+        '400':
+          description: Bad Request, such as an invalid X handle, an account that doesn't meet requirements, or a bonus that has already been claimed.
+
+  /api/audit:
+    post:
+      summary: Run AI Audit
+      description: Uses the Google Gemini API to generate a high-level analysis of the token sale's health based on real-time metrics.
+      tags:
+        - AI Services
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                presaleHotPrice:
+                  type: number
+                  example: 0.0000018
+      responses:
+        '200':
+          description: AI analysis generated successfully.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
+                  text:
                     type: string
-                    example: '1000 HOT tokens have been credited to your account.'
-                  newBalance:
-                    type: number
-                    example: 11000
-        '400':
-          description: Bad Request, such as an invalid X handle, an account that doesn't meet requirements, or a bonus that has already been claimed.
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/Error'
-                  - example: 
-                      error: "X account does not meet activity requirements."
-                  - example:
-                      error: "Invalid X handle provided."
-        '401':
-          description: Unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal Server Error.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                    description: The Markdown-formatted analysis from the AI.
+  
+  /api/newsletter:
+    post:
+      summary: Subscribe to newsletter
+      description: Subscribes a user's email to the project newsletter.
+      tags:
+        - Subscriptions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: 'user@example.com'
+      responses:
+        '200':
+          description: Subscription successful or email already subscribed.
+  
+  /api/rpc:
+    post:
+      summary: Solana RPC Proxy
+      description: Forwards JSON-RPC requests to the appropriate Solana cluster (Mainnet or Devnet) based on the `network` query parameter. This is used by the client to interact with the blockchain without exposing RPC provider details.
+      tags:
+        - RPC
+      parameters:
+        - name: network
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [mainnet, devnet, localnet]
+      responses:
+        '200':
+          description: A standard JSON-RPC response from the Solana node.
 
 components:
   schemas:
+    SaleConfig:
+      type: object
+      properties:
+        id: { type: string, example: "presale" }
+        name: { type: string, example: "Presale" }
+        startTimestamp: { type: number, example: 1767355200 }
+        endTimestamp: { type: number, example: 1769083200 }
+        softcap: { type: number, example: 5000000000 }
+        hardcap: { type: number, example: 18460000000 }
+        minContributionUSD: { type: number, example: 10 }
+        maxContributionUSD: { type: number, example: 10000 }
+
+    SaleStatusResponse:
+      type: object
+      properties:
+        saleConfig:
+          $ref: '#/components/schemas/SaleConfig'
+        saleState:
+          type: string
+          enum: [UPCOMING, ACTIVE, ENDED]
+          example: 'ACTIVE'
+        totalSold:
+          type: number
+          example: 1234567890
+        totalContributors:
+          type: number
+          example: 123
+        isListedOnDex:
+          type: boolean
+          example: false
+
+    NewTransaction:
+      type: object
+      required: [signature, walletAddress, hotAmount, paidAmount, paidCurrency, usdValue]
+      properties:
+        signature: { type: string }
+        walletAddress: { type: string }
+        hotAmount: { type: number }
+        paidAmount: { type: number }
+        paidCurrency: { type: string, enum: [SOL, USDC] }
+        usdValue: { type: number }
+
+    Transaction:
+      type: object
+      properties:
+        id: { type: string }
+        timestamp: { type: number }
+        hotAmount: { type: number }
+        currency: { type: string, enum: [SOL, USDC] }
+        paidAmount: { type: number }
+        usdValue: { type: number }
+        type: { type: string, enum: [presale_buy] }
+        status: { type: string, enum: [confirmed] }
+        
+    FaucetResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string, example: "10,000 HOT and 0.1 SOL have been sent to your wallet!" }
+        txSignature: { type: string, example: "sim_faucet_tx_1678886400000" }
+
     Error:
       type: object
       properties:
@@ -131,9 +331,3 @@ components:
           type: string
           description: A message describing the error.
           example: 'Bonus has already been claimed for this account.'
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: Authentication token for verifying user identity.

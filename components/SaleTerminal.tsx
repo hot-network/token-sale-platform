@@ -1,3 +1,4 @@
+
 import React, { useState, lazy, Suspense } from 'react';
 import useTokenSalesContext from '../hooks/useTokenSalesContext';
 import Button from './Button';
@@ -8,12 +9,13 @@ import FormattedAiResponse from './FormattedAiResponse';
 const TokenStatsPanel = lazy(() => import('./TokenStatsPanel'));
 const LiquidityPanel = lazy(() => import('./LiquidityPanel'));
 const AffiliatePanel = lazy(() => import('./AffiliatePanel'));
+const OrderbookPanel = lazy(() => import('./OrderbookPanel'));
 
 
 const SaleTerminal: React.FC = () => {
-    const { sale, user, transactions, prices, networkConfig, isListedOnDex, marketStats, isConfigLoading } = useTokenSalesContext();
+    const { sale, user, transactions, prices, networkConfig, isListedOnDex, marketStats, isConfigLoading, mintTestTokens } = useTokenSalesContext();
     const [infoTab, setInfoTab] = useState<'chart' | 'ai'>('chart');
-    const [mainTab, setMainTab] = useState<'presale' | 'trade' | 'liquidity' | 'affiliate'>('presale');
+    const [mainTab, setMainTab] = useState<'presale' | 'swap' | 'trade_pro' | 'liquidity' | 'affiliate'>('presale');
 
     if (isConfigLoading) {
         return (
@@ -79,7 +81,7 @@ const SaleTerminal: React.FC = () => {
     );
     
     const TabButton = ({ label, active, onClick, statusBadge }: { label: string; active: boolean; onClick: () => void, statusBadge?: React.ReactNode }) => (
-        <button onClick={onClick} className={`relative w-full py-3 font-bold text-center transition-colors duration-300 ${active ? 'text-brand-accent-dark dark:text-brand-accent' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-brand-dark/50'}`}>
+        <button onClick={onClick} className={`relative w-full py-3 text-xs sm:text-sm font-bold text-center transition-colors duration-300 ${active ? 'text-brand-accent-dark dark:text-brand-accent' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-brand-dark/50'}`}>
             <div className="flex items-center justify-center gap-2">
                 <span>{label}</span>
                 {statusBadge}
@@ -88,18 +90,13 @@ const SaleTerminal: React.FC = () => {
         </button>
     );
     
-    const presaleContent = <TokenSalePanel saleState={sale.state} stage={sale.stage} countdown={sale.countdown} totalSold={sale.totalSold} />;
-    const tradeContent = <TradePanel />;
-    const liquidityContent = <Suspense fallback={renderSuspenseFallback()}><LiquidityPanel /></Suspense>;
-    const affiliateContent = <Suspense fallback={renderSuspenseFallback()}><AffiliatePanel /></Suspense>;
-
-
     const renderMainContent = () => {
         switch (mainTab) {
-            case 'presale': return presaleContent;
-            case 'trade': return tradeContent;
-            case 'liquidity': return liquidityContent;
-            case 'affiliate': return affiliateContent;
+            case 'presale': return <TokenSalePanel saleState={sale.state} stage={sale.stage} countdown={sale.countdown} totalSold={sale.totalSold} />;
+            case 'swap': return <TradePanel />;
+            case 'trade_pro': return <Suspense fallback={renderSuspenseFallback()}><OrderbookPanel /></Suspense>;
+            case 'liquidity': return <Suspense fallback={renderSuspenseFallback()}><LiquidityPanel /></Suspense>;
+            case 'affiliate': return <Suspense fallback={renderSuspenseFallback()}><AffiliatePanel /></Suspense>;
             default: return null;
         }
     };
@@ -135,20 +132,20 @@ const SaleTerminal: React.FC = () => {
         </div>
     );
 
-    const presaleStatusBadge = sale.state === 'ACTIVE' ? <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span className="text-green-500 text-xs font-bold">LIVE</span></div> : null;
+    const presaleStatusBadge = sale.state === 'ACTIVE' ? <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span className="text-green-500 text-xs font-bold hidden sm:inline">LIVE</span></div> : null;
     const tradeStatusBadge = isListedOnDex 
-        ? <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span className="text-green-500 text-xs font-bold">LIVE</span></div>
-        : <span className="text-xs font-bold bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">TBA</span>;
+        ? <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span className="text-green-500 text-xs font-bold hidden sm:inline">LIVE</span></div>
+        : <span className="text-xs font-bold bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full hidden sm:inline">TBA</span>;
 
     return (
         <div className="max-w-5xl mx-auto bg-brand-light dark:bg-brand-dark border border-gray-200 dark:border-gray-700 shadow-2xl rounded-2xl font-sans overflow-hidden">
             {terminalHeader}
             
-            {/* Main Content Area */}
             <div>
-                <div className="grid grid-cols-4 bg-brand-light-dark dark:bg-brand-dark-light border-b border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-5 bg-brand-light-dark dark:bg-brand-dark-light border-b border-gray-200 dark:border-gray-700">
                     <TabButton label="Presale" active={mainTab === 'presale'} onClick={() => setMainTab('presale')} statusBadge={presaleStatusBadge} />
-                    <TabButton label="Trade" active={mainTab === 'trade'} onClick={() => setMainTab('trade')} statusBadge={tradeStatusBadge} />
+                    <TabButton label="Swap" active={mainTab === 'swap'} onClick={() => setMainTab('swap')} statusBadge={tradeStatusBadge} />
+                    <TabButton label="Trade (Pro)" active={mainTab === 'trade_pro'} onClick={() => setMainTab('trade_pro')} statusBadge={tradeStatusBadge} />
                     <TabButton label="Liquidity" active={mainTab === 'liquidity'} onClick={() => setMainTab('liquidity')} />
                     <TabButton label="Affiliate" active={mainTab === 'affiliate'} onClick={() => setMainTab('affiliate')} />
                 </div>
@@ -157,7 +154,6 @@ const SaleTerminal: React.FC = () => {
                 </div>
             </div>
             
-            {/* Secondary Info Area */}
             <div className="border-t border-gray-200 dark:border-gray-700">
                  <div className="grid grid-cols-2 bg-brand-light-dark dark:bg-brand-dark-light">
                     <TabButton label="Chart & Stats" active={infoTab === 'chart'} onClick={() => setInfoTab('chart')} />
@@ -167,6 +163,13 @@ const SaleTerminal: React.FC = () => {
                     {infoTab === 'chart' ? chartContent : aiAuditContent}
                 </div>
             </div>
+            {networkConfig.faucetEnabled && (
+                <div className="p-2 text-center border-t border-gray-200 dark:border-gray-700">
+                    <Button onClick={mintTestTokens} variant="secondary" className="text-xs py-1 px-3">
+                        <i className="fa-solid fa-plus-circle mr-2"></i>Mint Test Tokens
+                    </Button>
+                </div>
+            )}
         </div>
     );
 };

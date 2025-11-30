@@ -1,7 +1,8 @@
 
-const CACHE_NAME = 'hot-token-sale-cache-v1';
+const CACHE_NAME = 'hot-token-sale-cache-v2';
 const urlsToCache = [
   '/',
+  '/index.tsx',
   '/manifest.json',
   '/favicon.ico',
   // App assets
@@ -10,6 +11,7 @@ const urlsToCache = [
   '/assets/solana.png',
   '/assets/usdc.png',
   '/assets/hero-woman-bg.png',
+  '/assets/og-image.png',
   // PWA Icons
   '/assets/icons/icon-192x192.png',
   '/assets/icons/icon-512x512.png',

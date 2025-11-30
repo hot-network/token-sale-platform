@@ -43,9 +43,7 @@ const DEVNET_POOLS: LiquidityPool[] = [
 ];
 
 export const POOLS: Record<SolanaNetwork, LiquidityPool[]> = {
-    // FIX: Changed 'mainnet-beta' to 'mainnet' to match the SolanaNetwork type.
     'mainnet': MAINNET_POOLS,
     'devnet': DEVNET_POOLS,
-    // FIX: Changed 'testnet' to 'localnet' to match the SolanaNetwork type.
     'localnet': DEVNET_POOLS,
 };

@@ -1,1 +1,0 @@
-import{l as t}from"./index-DmRFr9OQ.js";async function i(e){return t.info("[Faucet]","Requesting simulated token drip..."),await new Promise(s=>setTimeout(s,1e3)),e.creditFunds(1,"SOL"),e.creditFunds(100,"USDC"),t.info("[Faucet]","Successfully dripped 1 SOL and 100 USDC."),{success:!0}}export{i as requestFaucetTokens};
