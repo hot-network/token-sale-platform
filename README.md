@@ -73,7 +73,7 @@ This application uses a hybrid architecture that combines the security of direct
 
 2.  **Install dependencies:**
     ```bash
-    npm install
+    pnpm install
     ```
 
 3.  **Set up environment variables:**
@@ -81,6 +81,17 @@ This application uses a hybrid architecture that combines the security of direct
     ```
     # .env
     DATABASE_URL="your_neon_db_connection_string"
+    NEXT_PUBLIC_SOLANA_NETWORK=mainnet-beta
+    NEXT_PUBLIC_SOLANA_MAINNET_URL=https://api.mainnet-beta.solana.com
+    NEXT_PUBLIC_SOLANA_DEVNET_URL=https://api.devnet.solana.com
+    NEXT_PUBLIC_SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=your-helius-api-key
+    NEXT_PUBLIC_SOLANA_DEVNET_URL=https://api.devnet.solana.com
+    NEXT_PUBLIC_HOT_TOKEN_MINT=EbDPyHifxX45CS6PA9msSM7utJa1DiHsDWp5zP6htf11
+    NEXT_PUBLIC_REWARDS_POOL=
+    NEXT_PUBLIC_PYTH_SOL_PRICE_FEED=H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG
+    NEXT_PUBLIC_PYTH_HOT_PRICE_FEED=EbDPyHifxX45CS6PA9msSM7utJa1DiHsDWp5zP6htf11 (TBA)
+    NEXT_PUBLIC_PYTH_USDC_PRICE_FEED=Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD
+    NEXT_PUBLIC_JUPITER_API_URL=https://quote-api.jup.ag/v6
     API_KEY="your_google_gemini_api_key"
     ```
     
