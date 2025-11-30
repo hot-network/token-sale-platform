@@ -67,8 +67,8 @@ This application uses a hybrid architecture that combines the security of direct
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
-    cd hot-token-launchpad
+    git clone https://github.com/hot-network/token-sale-platform
+    cd token-sale-platform
     ```
 
 2.  **Install dependencies:**
