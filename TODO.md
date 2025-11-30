@@ -2,6 +2,11 @@
 
 ## **1. Architecture & Framework Migration**
 
+### Check and Fix tokenomics and use https://hotnetwork.fun/tokenimics and updates
+
+* [ ] Update Key Metrics & Tokenomics, configs
+
+
 ### **Framework Upgrade**
 
 * [ ] Convert full project from **Vite + React** → **Next.js 16 (App Router)**
