@@ -55,7 +55,7 @@ const TokenomicsHighlights: React.FC = () => {
                         />
                          <MetricCard 
                             title="Total Token Supply" 
-                            value="100 Billion HOT"
+                            value="18.44 Billion HOT"
                             description="The maximum and total number of HOT tokens that will ever be created."
                             icon="fa-database"
                         />
