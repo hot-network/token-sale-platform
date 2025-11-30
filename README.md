@@ -1,6 +1,6 @@
 # HOT Token Sale Launchpad
 
-This is a mainnet-ready presale launchpad for the HOT token, built as a modern, client-side web application using React and TypeScript. It features a real-time, interactive interface for token sales, complete with wallet integration simulation and AI-powered analysis, all backed by a serverless Neon database.
+This is a token sale launchpad for the SPL and HOT token, built as a modern, client-side web application using React and TypeScript. It features a real-time, interactive interface for token sales, complete with wallet integration simulation and AI-powered analysis, all backed by a serverless Neon database.
 
 ## Tech Stack
 
